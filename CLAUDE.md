@@ -43,6 +43,8 @@ Table de routage dans `PageView` (App.tsx:107). Ajouter une page = ajouter un `i
 
 Migration legacy automatique : les URLs en `#/xxx` sont réécrites en `/xxx` au chargement.
 
+Le dev server a `historyApiFallback: true` dans [vite.config.ts](vite.config.ts) — nécessaire pour que le refresh sur `/articles/foo` renvoie `index.html` au lieu d'un 404. À conserver si on touche au proxy.
+
 ### Thèmes annuels ([src/themes/](src/themes/))
 
 `ACTIVE_THEME` est typé comme littéral (`ThemeName = "base"`) pour que Rollup tree-shake les thèmes inactifs. Ajouter un thème `"2027"` = étendre le type, ajouter l'entrée dans `THEMES`, créer `src/themes/2027/Decorations.tsx`, dispatcher dans `src/themes/Decorations.tsx`, ajouter le bloc CSS `html.theme-2027 { ... }` dans `src/index.css`. Le thème est appliqué au boot en ajoutant la classe sur `<html>` (App.tsx:20-28).

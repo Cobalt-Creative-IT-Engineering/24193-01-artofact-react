@@ -152,7 +152,7 @@ add_action('init', function () {
 - `SITE_CONFIG` — nom du site, langue, description (utilisés comme valeurs par défaut pour les meta tags)
 - `NAV_ITEMS` — items de navigation (`cta: true` pour afficher un item sous forme de bouton)
 - `ACTIVE_THEME` — sélectionne le thème visuel actif (voir [src/themes/](src/themes/))
-- `ACF schemas` — mapping clé sémantique → slug ACF, centralisé dans [src/config/acf-schemas.ts](src/config/acf-schemas.ts)
+- `ACF schemas` — mapping clé sémantique → slug ACF, centralisé dans src/config/acf-schemas.ts.
 
 > **ATTENTION** : ne jamais pointer un environnement de développement local vers la base WordPress de production d'Artofact.
 
