@@ -24,29 +24,27 @@ export const COMING_SOON_UNTIL: Date | null = (() => {
 // Centralise le nom du site, la langue et les éléments de navigation.
 
 export const SITE_CONFIG = {
-  name:        "Site Name",
+  name:        "Artofact",
   lang:        "fr",
-  description: "Description du site (utilisée comme valeur par défaut pour les meta tags).",
+  description: "Mêler art et industrie",
 } as const;
 
 // ─── Réseaux sociaux ──────────────────────────────────────────────────────────
-// Remplissez uniquement les plateformes que vous utilisez. Les liens vides
-// seront ignorés par le composant Footer / ContactPage.
+// À renseigner avec les vrais liens Artofact
 export const SOCIAL_LINKS = {
-  facebook:  "",
   instagram: "",
-  twitter:   "",
   linkedin:  "",
   youtube:   "",
 } as const;
 
 // cta: true → s'affiche à droite du nav en style bouton
-// cta: false → lien standard à gauche du nav
+// cta: false → lien standard (dans le menu full-screen)
 export const NAV_ITEMS = [
-  { id: 1, title: "À propos",    url: "/about",    cta: false },
-  { id: 2, title: "Articles",    url: "/articles", cta: false },
-  { id: 3, title: "Infos",       url: "/info",     cta: false },
-  { id: 4, title: "Contact",     url: "/contact",  cta: true  },
+  { id: 1, title: "Concept",            url: "/concept",           cta: false },
+  { id: 2, title: "Organisation",       url: "/organisation",      cta: false },
+  { id: 3, title: "Comptoir gruérien",  url: "/comptoir-gruerien", cta: false },
+  { id: 4, title: "Partenaires",        url: "/partenaires",       cta: false },
+  { id: 5, title: "Les duos",           url: "/duos",              cta: true  },
 ] as const;
 
 export type NavItem = (typeof NAV_ITEMS)[number];

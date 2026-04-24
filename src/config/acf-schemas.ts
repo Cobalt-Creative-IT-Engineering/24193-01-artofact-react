@@ -59,6 +59,32 @@ export const InfoACF = {
   sections: "info_sections",
 } as const;
 
+// ─── Options Page : "accueil" (Homepage Artofact) ────────────────────────
+
+export const HomeACF = {
+  heroImage:        "home_hero_image",
+  introTitle:       "home_intro_title",
+  introText:        "home_intro_text",
+  introCtaLabel:    "home_intro_cta_label",
+  introCtaUrl:      "home_intro_cta_url",
+  duosTitle:        "home_duos_title",
+  duosItems:        "home_duos_items",
+  comptoirTitle:    "home_comptoir_title",
+  comptoirSubtitle: "home_comptoir_subtitle",
+  comptoirText:     "home_comptoir_text",
+  comptoirCtaLabel: "home_comptoir_cta_label",
+  comptoirCtaUrl:   "home_comptoir_cta_url",
+} as const;
+
+export type HomeDuoItem = {
+  title?: string;
+  subtitle?: string;
+  image?: { url: string; alt?: string } | number | null;
+  text?: string;
+  cta_label?: string;
+  cta_url?: string;
+};
+
 // ─── Type utilitaire ──────────────────────────────────────────────────────
 
 /** Type d'un schéma ACF générique */

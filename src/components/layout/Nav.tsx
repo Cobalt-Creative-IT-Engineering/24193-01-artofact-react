@@ -1,82 +1,39 @@
-import { useState, useEffect } from "react";
-import { NAV_ITEMS, SITE_CONFIG } from "../../config/site";
-
-const leftItems  = NAV_ITEMS.filter((i) => !i.cta);
-const rightItems = NAV_ITEMS.filter((i) =>  i.cta);
+import { useEffect, useState } from "react";
+import { LogoPlaceholder } from "../ui";
 
 export function Nav() {
-  const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 60);
+    const onScroll = () => setScrolled(window.scrollY > 40);
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
   return (
-    <header className={`nav-wrapper${scrolled ? " nav-scrolled" : ""}`}>
-      <nav className="nav-inner">
-        <a href="/" className="nav-logo" onClick={() => setOpen(false)}>
-          {SITE_CONFIG.name}
+    <header className={`nav-wrapper${scrolled ? " nav-wrapper--scrolled" : ""}`}>
+      <div className="nav-inner">
+        {/* Placeholder left — même largeur que le burger pour équilibrer */}
+        <div className="nav-side" aria-hidden="true" />
+
+        <a href="/" className="nav-logo" aria-label="Artofact — accueil">
+          <LogoPlaceholder style={{ width: "7rem", height: "auto", color: "#E8E6E1" }} />
         </a>
 
-        <ul className="nav-links nav-links--left">
-          {leftItems.map((item) => (
-            <li key={item.id}>
-              <a href={item.url} className="nav-link">{item.title}</a>
-            </li>
-          ))}
-        </ul>
-
-        <ul className="nav-links nav-links--right">
-          {rightItems.map((item) => {
-            const isExternal = item.url.startsWith("http");
-            return (
-              <li key={item.id}>
-                <a
-                  href={item.url}
-                  className="nav-link nav-cta"
-                  {...(isExternal ? { target: "_blank", rel: "noreferrer" } : {})}
-                >
-                  {item.title}
-                </a>
-              </li>
-            );
-          })}
-        </ul>
-
-        <button
-          className="nav-hamburger"
-          onClick={() => setOpen((o) => !o)}
-          aria-label="Menu"
-          aria-expanded={open}
-        >
-          <span className={`ham-line${open ? " ham-line--top-open" : ""}`} />
-          <span className={`ham-line${open ? " ham-line--hidden" : ""}`} />
-          <span className={`ham-line${open ? " ham-line--bottom-open" : ""}`} />
-        </button>
-      </nav>
-
-      {open && (
-        <div className="mobile-menu">
-          {NAV_ITEMS.map((item) => {
-            const isExternal = item.url.startsWith("http");
-            return (
-              <a
-                key={item.id}
-                href={item.url}
-                className="mobile-link"
-                onClick={() => { if (!isExternal) setOpen(false); }}
-                {...(isExternal ? { target: "_blank", rel: "noreferrer" } : {})}
-              >
-                {item.title}
-              </a>
-            );
-          })}
+        {/* Burger visuel uniquement — le menu full-screen sera implémenté séparément */}
+        <div className="nav-side nav-side--right">
+          <button
+            type="button"
+            className="nav-burger"
+            aria-label="Menu"
+            aria-expanded="false"
+          >
+            <span className="nav-burger-line" />
+            <span className="nav-burger-line" />
+          </button>
         </div>
-      )}
+      </div>
     </header>
   );
 }
