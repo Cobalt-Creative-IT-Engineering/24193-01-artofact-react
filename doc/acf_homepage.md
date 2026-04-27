@@ -2,7 +2,7 @@
 
 Ce document décrit **exactement** ce qu'il faut créer côté WordPress (plugin Advanced Custom Fields) pour alimenter la page d'accueil du site Artofact.
 
-Les noms de champs (slug ACF) doivent être respectés à l'identique — ils sont référencés dans [src/config/acf-schemas.ts](../src/config/acf-schemas.ts) côté React.
+Les noms de champs (slug ACF) doivent être respectés à l'identique — ils sont référencés dans src/config/acf-schemas.ts côté React.
 
 ---
 
