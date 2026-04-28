@@ -449,16 +449,18 @@ a {
 
 /* ─── Home : section duos ──────────────────────────────────────────────── */
 .home-duos                  { position: relative; }
-/* Espacement vertical entre les cards duo de la home */
-.home-duos > .content-section + .content-section { margin-top: 3rem; }
+/* Espacement vertical entre les cards duo (home + page /duos) */
+.home-duos > .content-section + .content-section,
+.duos-main > .content-section + .content-section { margin-top: 3rem; }
 .home-duos-sticker          { position: absolute; left: 0; top: 6rem; width: 8rem; height: auto;
                               z-index: var(--z-decorations); }
 .home-duos-header           { max-width: var(--container); margin: 0 auto;
                               padding: 4rem 0 2rem var(--content-px); text-align: right; position: relative; }
-/* Section Duos sur la home : image plus compacte que sur /duos. */
 @media (min-width: 768px) {
-  .home-duos .content-section-image    { flex: 0 0 38%; }
-  .home-duos .content-section-content  { flex: 1; }
+  .home-duos .content-section-image,
+  .duos-main .content-section-image    { flex: 0 0 38%; }
+  .home-duos .content-section-content,
+  .duos-main .content-section-content  { flex: 1; }
 }
 
 /* Listing des duos (homepage + page /duos) : limiter la taille de l'image. */
@@ -862,15 +864,30 @@ a {
 
 /* ─── Duos page (liste) ────────────────────────────────────────────────── */
 
-.duos-main { background: var(--color-bg-dark); }
+.duos-main { background: var(--color-bg-dark); padding-bottom: 6rem; flex: 1; overflow-x: clip; }
 
 .duos-hero {
   padding: var(--page-top-offset) var(--content-px) 5rem;
+  position: relative;
+}
+.duos-hero-sticker {
+  position: absolute;
+  right: 0;
+  top: var(--page-top-offset);
+  transform: translate(50%, 0);
+  width: clamp(15rem, 38vw, 28rem);
+  height: auto;
+  z-index: var(--z-decorations);
+  pointer-events: none;
+}
+.duos-hero-inner {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
   max-width: var(--container);
   margin: 0 auto;
+  position: relative;
+  z-index: 2;
 }
 .duos-hero-title {
   font-family: var(--font-display);
@@ -891,10 +908,27 @@ a {
 
 /* ─── Duo detail page ──────────────────────────────────────────────────── */
 
-.duo-detail-main { background: var(--color-bg-dark); }
+.duo-detail-main {
+  background: var(--color-bg-dark);
+  flex: 1;
+  overflow-x: clip;
+}
 
 .duo-detail-hero {
   padding: var(--page-top-offset) var(--content-px) 5rem;
+  position: relative;
+}
+.duo-detail-hero-sticker {
+  position: absolute;
+  right: 0;
+  top: var(--page-top-offset);
+  transform: translate(50%, 0);
+  width: clamp(15rem, 38vw, 28rem);
+  height: auto;
+  z-index: var(--z-decorations);
+  pointer-events: none;
+}
+.duo-detail-hero-inner {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
@@ -903,7 +937,7 @@ a {
   margin: 0 auto;
 }
 @media (max-width: 900px) {
-  .duo-detail-hero {
+  .duo-detail-hero-inner {
     grid-template-columns: 1fr;
     gap: 2.5rem;
   }
@@ -949,29 +983,71 @@ a {
   object-fit: cover;
 }
 
-/* Section membres — variant accent (fond turquoise) */
+/* Section membres — cards artiste / entreprise sur fond sombre */
 .duo-detail-members {
-  background: var(--primary-300);
-  padding: 5rem var(--content-px);
+  padding: 2rem var(--content-px) 5rem;
 }
 .duo-detail-members-inner {
   max-width: var(--container);
   margin: 0 auto;
 }
-.duo-detail-members-title {
-  font-family: var(--font-display);
-  font-size: clamp(1.5rem, 3vw, 2.25rem);
-  font-weight: 700;
-  color: var(--color-text);
-  margin-bottom: 2.5rem;
-}
 .duo-detail-members-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 2.5rem;
+  gap: 2rem;
 }
 @media (max-width: 768px) {
-  .duo-detail-members-grid { grid-template-columns: 1fr; gap: 2.5rem; }
+  .duo-detail-members-grid { grid-template-columns: 1fr; gap: 2rem; }
+}
+
+/* DuoMemberCard — fond clair, coins arrondis */
+.duo-member-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 2rem;
+  background: var(--primary-100);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+}
+.duo-member-card-name {
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+  font-weight: 700;
+  margin: 0;
+}
+.duo-member-card-photo {
+  position: relative;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--neutral-300);
+}
+.duo-member-card-photo > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.duo-member-card-text {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  margin: 0;
+  opacity: 0.85;
+}
+.duo-member-card-cta-row {
+  display: flex;
+  margin-top: auto;
+}
+.duo-member-card-tag {
+  display: inline-block;
+  padding: 0.5rem 1.25rem;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  color: var(--color-text);
+  font-weight: 700;
+  font-size: 0.85rem;
 }
 
 /* ─── MemberCard ───────────────────────────────────────────────────────── */

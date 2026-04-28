@@ -2,7 +2,7 @@ import { useACFOptionsPage, useDuosList } from "../hooks/useWordPress";
 import { acfReader } from "../components/acf";
 import { DuosListingACF } from "../config/acf-schemas";
 import type { DuoNode } from "../config/acf-schemas";
-import { ContentSection } from "../components/ui";
+import { ContentSection, Sticker } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 
 // ─── Lorem ipsum placeholder ──────────────────────────────────────────────
@@ -41,8 +41,11 @@ const FAKE_DUOS_LIST: DuoNode[] = [
 function DuosHero({ title, intro }: { title: string; intro: string }) {
   return (
     <section className="duos-hero" aria-label="Les duos">
-      <h1 className="duos-hero-title">{title}</h1>
-      <p className="duos-hero-text">{intro}</p>
+      <Sticker name="03" className="duos-hero-sticker" />
+      <div className="duos-hero-inner">
+        <h1 className="duos-hero-title">{title}</h1>
+        <p className="duos-hero-text">{intro}</p>
+      </div>
     </section>
   );
 }

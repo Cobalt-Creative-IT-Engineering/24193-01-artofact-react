@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDuoBySlug } from "../hooks/useWordPress";
 import type { DuoNode } from "../config/acf-schemas";
-import { MemberCard } from "../components/ui";
+import { Sticker } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 import { setPageMeta } from "../lib/meta";
 import bannerImg from "../assets/images/banner.svg";
@@ -37,21 +37,48 @@ type DuoDetailHeroProps = {
 function DuoDetailHero({ title, description, imageUrl, imageAlt, lien }: DuoDetailHeroProps) {
   return (
     <section className="duo-detail-hero" aria-label={title}>
-      <div className="duo-detail-hero-content">
-        <h1 className="duo-detail-hero-title">{formatDuoTitle(title)}</h1>
-        {description && <p className="duo-detail-hero-text">{description}</p>}
-        {lien && (
-          <div>
-            <a href={lien} target="_blank" rel="noopener noreferrer" className="btn-cta">
-              En savoir plus
-            </a>
-          </div>
-        )}
-      </div>
-      <div className="duo-detail-hero-image">
-        <img src={imageUrl ?? bannerImg} alt={imageAlt || title} />
+      <Sticker name="04" className="duo-detail-hero-sticker" />
+      <div className="duo-detail-hero-inner">
+        <div className="duo-detail-hero-content">
+          <h1 className="duo-detail-hero-title">{formatDuoTitle(title)}</h1>
+          {description && <p className="duo-detail-hero-text">{description}</p>}
+          {lien && (
+            <div>
+              <a href={lien} target="_blank" rel="noopener noreferrer" className="btn-cta">
+                En savoir plus
+              </a>
+            </div>
+          )}
+        </div>
+        <div className="duo-detail-hero-image">
+          <img src={imageUrl ?? bannerImg} alt={imageAlt || title} />
+        </div>
       </div>
     </section>
+  );
+}
+
+// ─── Card Artiste / Entreprise ────────────────────────────────────────────
+
+type DuoMemberCardProps = {
+  name: string;
+  text: string;
+  photoUrl: string | null;
+  photoAlt: string;
+};
+
+function DuoMemberCard({ name, text, photoUrl, photoAlt }: DuoMemberCardProps) {
+  return (
+    <article className="duo-member-card">
+      <h3 className="duo-member-card-name">{name}</h3>
+      <div className="duo-member-card-photo">
+        <img src={photoUrl ?? bannerImg} alt={photoAlt} />
+      </div>
+      {text && <p className="duo-member-card-text">{text}</p>}
+      <div className="duo-member-card-cta-row">
+        <span className="duo-member-card-tag">{name}</span>
+      </div>
+    </article>
   );
 }
 
@@ -94,24 +121,23 @@ export function DuoDetailPage({ slug }: { slug: string }) {
       />
 
       {(artiste || entreprise) && (
-        <section className="duo-detail-members">
+        <section className="duo-detail-members" aria-label="Membres du duo">
           <div className="duo-detail-members-inner">
-            <h2 className="duo-detail-members-title">Les membres du duo</h2>
             <div className="duo-detail-members-grid">
               {artiste && (
-                <MemberCard
+                <DuoMemberCard
                   name={artiste}
                   photoUrl={null}
                   photoAlt={artiste}
-                  text=""
+                  text={LOREM}
                 />
               )}
               {entreprise && (
-                <MemberCard
+                <DuoMemberCard
                   name={entreprise}
                   photoUrl={null}
                   photoAlt={entreprise}
-                  text=""
+                  text={LOREM}
                 />
               )}
             </div>
