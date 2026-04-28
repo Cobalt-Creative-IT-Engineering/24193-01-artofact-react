@@ -294,6 +294,7 @@ a {
   align-items: center;
 }
 .footer-col-end { justify-self: end; text-align: right; }
+.footer-social   { justify-self: center; text-align: center; }
 @media (max-width: 768px) {
   .footer-inner {
     grid-template-columns: 1fr;
@@ -327,8 +328,6 @@ a {
   justify-content: center;
   width: 2.25rem;
   height: 2.25rem;
-  border: 1.5px solid var(--color-text);
-  border-radius: 6px;
   color: var(--color-text);
   transition: opacity 0.15s;
 }
