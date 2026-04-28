@@ -1,6 +1,4 @@
-import { useACFOptionsPage, useDuosList } from "../hooks/useWordPress";
-import { acfReader } from "../components/acf";
-import { DuosListingACF } from "../config/acf-schemas";
+import { useDuosList } from "../hooks/useWordPress";
 import type { DuoNode } from "../config/acf-schemas";
 import { ContentSection, Sticker } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
@@ -16,22 +14,16 @@ const FAKE_DUOS_LIST: DuoNode[] = [
     slug:  "ecal-x-atelier-firmann",
     title: "Ecal x Atelier Firmann",
     duoFields: {
-      artiste:     "Ecal",
-      entreprise:  "Atelier Firmann",
-      description: LOREM,
-      lien:        null,
-      image:       null,
+      titre: "Ecal x Atelier Firmann",
+      texte: LOREM,
     },
   },
   {
     slug:  "matthia-gremaud-x-morand-construction",
     title: "Matthia Gremaud x Morand construction",
     duoFields: {
-      artiste:     "Matthia Gremaud",
-      entreprise:  "Morand construction",
-      description: LOREM,
-      lien:        null,
-      image:       null,
+      titre: "Matthia Gremaud x Morand construction",
+      texte: LOREM,
     },
   },
 ];
@@ -53,14 +45,6 @@ function DuosHero({ title, intro }: { title: string; intro: string }) {
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export function DuosPage() {
-  const { data: optionsData, status: optionsStatus } = useACFOptionsPage("duos-listing");
-  const listing = acfReader(optionsData, DuosListingACF);
-
-  const heroTitle = listing.text("heroTitle") || "Les duos";
-  const heroIntro =
-    listing.text("heroIntro") ||
-    (optionsStatus !== "loading" ? LOREM : "");
-
   const { data: duosData, status: duosStatus } = useDuosList();
 
   // Si WP retourne une liste vide ou indisponible, on utilise le fake.
@@ -74,7 +58,7 @@ export function DuosPage() {
 
   return (
     <main className="duos-main">
-      <DuosHero title={heroTitle} intro={heroIntro} />
+      <DuosHero title="Les duos" intro={LOREM} />
 
       {duos.map((duo, i) => {
         const fields = duo.duoFields ?? {};
@@ -83,7 +67,7 @@ export function DuosPage() {
             key={duo.slug}
             titleNode={formatDuoTitle(duo.title)}
             title={duo.title}
-            text={fields.description ?? ""}
+            text={fields.texte ?? ""}
             imageUrl={fields.image?.node.sourceUrl ?? null}
             imageAlt={fields.image?.node.altText ?? ""}
             ctaLabel="Découvrir le duo"

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useDuoBySlug } from "../hooks/useWordPress";
-import type { DuoNode } from "../config/acf-schemas";
+import type { DuoNode, DuoArtiste, DuoEntreprise, AcfLink } from "../config/acf-schemas";
 import { Sticker } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 import { setPageMeta } from "../lib/meta";
@@ -16,39 +16,39 @@ const FAKE_DUO_DETAIL: DuoNode = {
   slug:  "matthia-gremaud-x-morand-construction",
   title: "Matthia Gremaud x Morand construction",
   duoFields: {
-    artiste:     "Matthia Gremaud",
-    entreprise:  "Morand construction",
-    description: LOREM,
-    lien:        null,
-    image:       null,
+    titre:     "Matthia Gremaud x Morand construction",
+    sousTitre: "Un duo gravé dans le métal",
+    texte:     LOREM,
+    artiste: {
+      nom: "Matthia Gremaud",
+      descriptionArtiste: LOREM,
+    },
+    entreprise: {
+      nom: "Morand construction",
+      descriptionEntreprise: LOREM,
+    },
   },
 };
 
 // ─── Hero détail ─────────────────────────────────────────────────────────
 
 type DuoDetailHeroProps = {
-  title: string;
-  description: string;
+  title:    string;
+  subtitle: string;
+  text:     string;
   imageUrl: string | null;
   imageAlt: string;
-  lien: string | null;
 };
 
-function DuoDetailHero({ title, description, imageUrl, imageAlt, lien }: DuoDetailHeroProps) {
+function DuoDetailHero({ title, subtitle, text, imageUrl, imageAlt }: DuoDetailHeroProps) {
   return (
     <section className="duo-detail-hero" aria-label={title}>
       <Sticker name="04" className="duo-detail-hero-sticker" />
       <div className="duo-detail-hero-inner">
         <div className="duo-detail-hero-content">
           <h1 className="duo-detail-hero-title">{formatDuoTitle(title)}</h1>
-          {description && <p className="duo-detail-hero-text">{description}</p>}
-          {lien && (
-            <div>
-              <a href={lien} target="_blank" rel="noopener noreferrer" className="btn-cta">
-                En savoir plus
-              </a>
-            </div>
-          )}
+          {subtitle && <p className="duo-detail-hero-subtitle">{subtitle}</p>}
+          {text && <p className="duo-detail-hero-text">{text}</p>}
         </div>
         <div className="duo-detail-hero-image">
           <img src={imageUrl ?? bannerImg} alt={imageAlt || title} />
@@ -65,9 +65,13 @@ type DuoMemberCardProps = {
   text: string;
   photoUrl: string | null;
   photoAlt: string;
+  link?: AcfLink | null;
 };
 
-function DuoMemberCard({ name, text, photoUrl, photoAlt }: DuoMemberCardProps) {
+function DuoMemberCard({ name, text, photoUrl, photoAlt, link }: DuoMemberCardProps) {
+  const cta = link?.url
+    ? { href: link.url, label: link.title || name }
+    : null;
   return (
     <article className="duo-member-card">
       <h3 className="duo-member-card-name">{name}</h3>
@@ -76,10 +80,42 @@ function DuoMemberCard({ name, text, photoUrl, photoAlt }: DuoMemberCardProps) {
       </div>
       {text && <p className="duo-member-card-text">{text}</p>}
       <div className="duo-member-card-cta-row">
-        <span className="duo-member-card-tag">{name}</span>
+        {cta ? (
+          <a href={cta.href} target={link?.target ?? "_blank"} rel="noopener noreferrer" className="duo-member-card-tag">
+            {cta.label}
+          </a>
+        ) : (
+          <span className="duo-member-card-tag">{name}</span>
+        )}
       </div>
     </article>
   );
+}
+
+// ─── Helpers d'extraction ────────────────────────────────────────────────
+
+function artisteCardProps(artiste: DuoArtiste | null | undefined): DuoMemberCardProps | null {
+  const name = artiste?.nom?.trim();
+  if (!name) return null;
+  return {
+    name,
+    text:     artiste?.descriptionArtiste ?? "",
+    photoUrl: artiste?.imageArtiste?.node.sourceUrl ?? null,
+    photoAlt: artiste?.imageArtiste?.node.altText ?? name,
+    link:     artiste?.lienArtiste ?? null,
+  };
+}
+
+function entrepriseCardProps(entreprise: DuoEntreprise | null | undefined): DuoMemberCardProps | null {
+  const name = entreprise?.nom?.trim();
+  if (!name) return null;
+  return {
+    name,
+    text:     entreprise?.descriptionEntreprise ?? "",
+    photoUrl: entreprise?.imageEntreprise?.node.sourceUrl ?? null,
+    photoAlt: entreprise?.imageEntreprise?.node.altText ?? name,
+    link:     entreprise?.lienEntreprise ?? null,
+  };
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────
@@ -96,12 +132,13 @@ export function DuoDetailPage({ slug }: { slug: string }) {
 
   const titleRendered = duo?.title ?? "";
   const fields        = duo?.duoFields ?? {};
-  const artiste       = fields.artiste ?? "";
-  const entreprise    = fields.entreprise ?? "";
-  const description   = fields.description ?? "";
-  const lien          = fields.lien ?? null;
+  const heroSubtitle  = fields.sousTitre ?? "";
+  const heroText      = fields.texte ?? "";
   const heroImageUrl  = fields.image?.node.sourceUrl ?? null;
   const heroImageAlt  = fields.image?.node.altText ?? "";
+
+  const artisteProps    = artisteCardProps(fields.artiste);
+  const entrepriseProps = entrepriseCardProps(fields.entreprise);
 
   useEffect(() => {
     if (!titleRendered) return;
@@ -114,32 +151,18 @@ export function DuoDetailPage({ slug }: { slug: string }) {
     <main className="duo-detail-main">
       <DuoDetailHero
         title={titleRendered}
-        description={description}
+        subtitle={heroSubtitle}
+        text={heroText}
         imageUrl={heroImageUrl}
         imageAlt={heroImageAlt}
-        lien={lien}
       />
 
-      {(artiste || entreprise) && (
+      {(artisteProps || entrepriseProps) && (
         <section className="duo-detail-members" aria-label="Membres du duo">
           <div className="duo-detail-members-inner">
             <div className="duo-detail-members-grid">
-              {artiste && (
-                <DuoMemberCard
-                  name={artiste}
-                  photoUrl={null}
-                  photoAlt={artiste}
-                  text={LOREM}
-                />
-              )}
-              {entreprise && (
-                <DuoMemberCard
-                  name={entreprise}
-                  photoUrl={null}
-                  photoAlt={entreprise}
-                  text={LOREM}
-                />
-              )}
+              {artisteProps    && <DuoMemberCard {...artisteProps} />}
+              {entrepriseProps && <DuoMemberCard {...entrepriseProps} />}
             </div>
           </div>
         </section>

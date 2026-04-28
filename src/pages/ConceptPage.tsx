@@ -1,19 +1,10 @@
-import { useACFOptionsPage } from "../hooks/useWordPress";
-import { acfReader } from "../components/acf";
-import { ConceptACF } from "../config/acf-schemas";
-import type { ConceptSectionItem, ContentVariant } from "../config/acf-schemas";
+import { useConceptContent } from "../hooks/useWordPress";
+import type { AcfLink, PageSection, PageSectionTextOnly } from "../config/acf-schemas";
 import { ContentSection, CTAButton } from "../components/ui";
 
 // ─── Lorem ipsum (placeholders pré-prod tant que WP n'a pas de contenu) ───
 
 const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.";
-
-const FAKE_SECTIONS: ConceptSectionItem[] = [
-  { title: "Mêler art et industrie",         text: LOREM, image: null, cta_label: "Découvrir", cta_url: "/duos", variant: "dark"   },
-  { title: "Des duos favorisant l'échange",  text: LOREM, image: null, cta_label: "Découvrir", cta_url: "/duos", variant: "light"  },
-  { title: "Mêler art et industrie",         text: LOREM, image: null, cta_label: "Découvrir", cta_url: "/duos", variant: "dark"   },
-  { title: "L'art s'inscrit dans la ville",  text: LOREM, image: null, cta_label: "Découvrir", cta_url: "/duos", variant: "accent" },
-];
 
 // ─── Hero (composant local non exporté) ───────────────────────────────────
 
@@ -53,57 +44,91 @@ function ConceptCard({ title, text, ctaLabel, ctaUrl }: ConceptCardProps) {
   );
 }
 
+// ─── Helpers ──────────────────────────────────────────────────────────────
+
+function linkProps(lien: AcfLink | null | undefined): { href: string; label: string } | null {
+  if (!lien?.url) return null;
+  return { href: lien.url, label: lien.title || "Découvrir" };
+}
+
+function imageProps(image: PageSection["image"]): { url: string | null; alt: string } {
+  return {
+    url: image?.node.sourceUrl ?? null,
+    alt: image?.node.altText ?? "",
+  };
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export function ConceptPage() {
-  const { data, status } = useACFOptionsPage("concept");
-  const concept = acfReader(data, ConceptACF);
+  const { data, status } = useConceptContent();
+  const enTete     = data?.enTete;
+  const zoneGrise  = data?.zoneGrise;
+  const carte      = data?.carte;
+  const piedDePage = data?.piedDePage;
 
-  const heroTitle = concept.text("heroTitle") || "Le concept";
-  const heroText  = concept.text("heroText")  || (status !== "loading" ? LOREM : "");
-  const sections  = concept.repeater<ConceptSectionItem>("sections");
-  const list      = sections.length > 0 ? sections : FAKE_SECTIONS;
+  const heroTitle = enTete?.titre || "Le concept";
+  const heroText  = enTete?.texte || (status !== "loading" ? LOREM : "");
 
   return (
     <main className="concept-main">
       <ConceptHero title={heroTitle} text={heroText} />
 
-      {list.map((item, i) => {
-        const variant: ContentVariant = item.variant ?? (i % 2 === 0 ? "dark" : "light");
-        const imageUrl = item.image && typeof item.image === "object" && "url" in item.image
-          ? item.image.url
-          : null;
-        const imageAlt = item.image && typeof item.image === "object" && "alt" in item.image
-          ? (item.image.alt ?? "")
-          : "";
+      {/* Section grise (variant light) — rendue en pleine largeur via CSS */}
+      {(zoneGrise?.titre || zoneGrise?.texte) && (
+        <ConceptListSection
+          item={zoneGrise}
+          variant="light"
+          reversed={false}
+        />
+      )}
 
-        // Variant accent sans image → rendu en card (titre + texte + CTA, fond turquoise)
-        if (variant === "accent" && !imageUrl) {
-          return (
-            <ConceptCard
-              key={i}
-              title={item.title ?? ""}
-              text={item.text ?? ""}
-              ctaLabel={item.cta_label}
-              ctaUrl={item.cta_url}
-            />
-          );
-        }
+      {/* Pied-de-page (variant dark, image à gauche) */}
+      {(piedDePage?.titre || piedDePage?.texte) && (
+        <ConceptListSection
+          item={piedDePage}
+          variant="dark"
+          reversed
+        />
+      )}
 
-        return (
-          <ContentSection
-            key={i}
-            title={item.title ?? ""}
-            text={item.text ?? ""}
-            ctaLabel={item.cta_label}
-            ctaUrl={item.cta_url}
-            imageUrl={imageUrl}
-            imageAlt={imageAlt}
-            reversed={i % 2 !== 0}
-            variant={variant}
-          />
-        );
-      })}
+      {/* Card accent — sans image */}
+      {(carte?.titre || carte?.texte) && (
+        <ConceptCard
+          title={carte.titre ?? ""}
+          text={carte.texte ?? ""}
+          {...(linkProps(carte.lien) && {
+            ctaLabel: linkProps(carte.lien)!.label,
+            ctaUrl:   linkProps(carte.lien)!.href,
+          })}
+        />
+      )}
     </main>
+  );
+}
+
+// ─── Section avec image (zoneGrise / piedDePage) ─────────────────────────
+
+function ConceptListSection({
+  item,
+  variant,
+  reversed,
+}: {
+  item: PageSection | PageSectionTextOnly;
+  variant: "dark" | "light" | "accent";
+  reversed: boolean;
+}) {
+  const img = "image" in item ? imageProps(item.image) : { url: null, alt: "" };
+  const cta = linkProps(item.lien);
+  return (
+    <ContentSection
+      title={item.titre ?? ""}
+      text={item.texte ?? ""}
+      imageUrl={img.url}
+      imageAlt={img.alt}
+      reversed={reversed}
+      variant={variant}
+      {...(cta && { ctaLabel: cta.label, ctaUrl: cta.href })}
+    />
   );
 }

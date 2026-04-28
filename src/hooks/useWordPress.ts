@@ -284,22 +284,41 @@ export async function prefetchCPTItems(
   );
 }
 
-// ─── GraphQL — Duos (CPT + ACF) ──────────────────────────────────────────
-//
-// Les duos sont gérés en GraphQL (pas en REST) : le groupe ACF "Duos" expose
-// un sub-field `duoFields` sur le type `Duo` (CPT). Voir doc/acf_duos.md.
+// ─── GraphQL — fragments partagés ────────────────────────────────────────
 
-import type { DuoNode } from "../config/acf-schemas";
+const GQL_LINK_FRAGMENT = `url title target`;
+const GQL_IMAGE_EDGE = `node { sourceUrl altText }`;
+
+// ─── GraphQL — Duos (CPT + ACF) ──────────────────────────────────────────
+
+import type {
+  DuoNode,
+  HomeContent,
+  HomeContentResponse,
+  ConceptContent,
+  ConceptContentResponse,
+} from "../config/acf-schemas";
 
 const GQL_DUO_FIELDS_FRAGMENT = `
   slug
   title
   duoFields {
-    artiste
-    entreprise
-    description
-    lien
-    image { node { sourceUrl altText } }
+    titre
+    sousTitre
+    texte
+    image { ${GQL_IMAGE_EDGE} }
+    artiste {
+      nom
+      descriptionArtiste
+      imageArtiste { ${GQL_IMAGE_EDGE} }
+      lienArtiste { ${GQL_LINK_FRAGMENT} }
+    }
+    entreprise {
+      nom
+      descriptionEntreprise
+      imageEntreprise { ${GQL_IMAGE_EDGE} }
+      lienEntreprise { ${GQL_LINK_FRAGMENT} }
+    }
   }
 `;
 
@@ -334,6 +353,61 @@ export function useDuoBySlug(slug: string) {
         ? graphqlFetch<GqlDuoBySlugResponse>(GQL_DUO_BY_SLUG, { slug }).then(r => r.duo ?? null)
         : Promise.resolve(null),
     { cacheKey: `gql:duo:${slug}`, persist: true }
+  );
+}
+
+// ─── GraphQL — Page d'accueil (Options Page) ─────────────────────────────
+
+const GQL_HOME_CONTENT = `
+  query GetHomeContent {
+    pageAccueilContent {
+      pageDAccueil {
+        enTete     { titre texte lien { ${GQL_LINK_FRAGMENT} } }
+        piedDePage { titre texte lien { ${GQL_LINK_FRAGMENT} } }
+      }
+    }
+  }
+`;
+
+export function useHomeContent() {
+  return useFetch<HomeContent>(
+    () =>
+      graphqlFetch<HomeContentResponse>(GQL_HOME_CONTENT).then(
+        r => r.pageAccueilContent?.pageDAccueil ?? {}
+      ),
+    { cacheKey: "gql:home", staleMs: 120_000, persist: true }
+  );
+}
+
+// ─── GraphQL — Page concept (Options Page) ───────────────────────────────
+
+const GQL_CONCEPT_SECTION = `
+  titre
+  texte
+  lien { ${GQL_LINK_FRAGMENT} }
+  image { ${GQL_IMAGE_EDGE} }
+`;
+
+const GQL_CONCEPT_CONTENT = `
+  query GetConceptContent {
+    pageConceptContent {
+      pageConcept {
+        enTete     { ${GQL_CONCEPT_SECTION} }
+        zoneGrise  { ${GQL_CONCEPT_SECTION} }
+        carte      { titre texte lien { ${GQL_LINK_FRAGMENT} } }
+        piedDePage { ${GQL_CONCEPT_SECTION} }
+      }
+    }
+  }
+`;
+
+export function useConceptContent() {
+  return useFetch<ConceptContent>(
+    () =>
+      graphqlFetch<ConceptContentResponse>(GQL_CONCEPT_CONTENT).then(
+        r => r.pageConceptContent?.pageConcept ?? {}
+      ),
+    { cacheKey: "gql:concept", staleMs: 120_000, persist: true }
   );
 }
 
