@@ -405,7 +405,7 @@ a {
 
 .home-hero {
   position: relative;
-  min-height: 100vh;
+  min-height: 70vh;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -449,36 +449,51 @@ a {
 
 /* ─── Home : section duos ──────────────────────────────────────────────── */
 .home-duos                  { position: relative; }
-/* Espacement vertical entre les cards duo (home + page /duos) */
+/* Espacement vertical entre les cards (home duos + page /duos + page /concept) */
 .home-duos > .content-section + .content-section,
-.duos-main > .content-section + .content-section { margin-top: 3rem; }
+.duos-main > .content-section + .content-section,
+.concept-main > .content-section + .content-section { margin-top: 3rem; }
 .home-duos-sticker          { position: absolute; left: 0; top: 6rem; width: 8rem; height: auto;
                               z-index: var(--z-decorations); }
 .home-duos-header           { max-width: var(--container); margin: 0 auto;
                               padding: 4rem 0 2rem var(--content-px); text-align: right; position: relative; }
 @media (min-width: 768px) {
   .home-duos .content-section-image,
-  .duos-main .content-section-image    { flex: 0 0 38%; }
+  .duos-main .content-section-image,
+  .concept-main .content-section-image    { flex: 0 0 38%; }
   .home-duos .content-section-content,
-  .duos-main .content-section-content  { flex: 1; }
+  .duos-main .content-section-content,
+  .concept-main .content-section-content  { flex: 1; }
 }
 
-/* Listing des duos (homepage + page /duos) : limiter la taille de l'image. */
+/* Listing : limiter la taille de l'image. */
 .home-duos .content-section-image,
-.duos-main .content-section-image      { max-width: 613px; max-height: 400px; }
+.duos-main .content-section-image,
+.concept-main .content-section-image      { max-width: 613px; max-height: 400px; }
 
-/* Listing des duos : séparateur fin au-dessus du titre du duo, limité à la
-   largeur de la colonne contenu (donc ne traverse pas l'image). */
+/* Listing : séparateur fin au-dessus du titre, limité à la largeur de la
+   colonne contenu (donc ne traverse pas l'image). Couleur claire par défaut
+   (lisible sur fond sombre), foncée pour les variants light / accent. */
 .home-duos .content-section-title,
-.duos-main .content-section-title {
+.duos-main .content-section-title,
+.concept-main .content-section-title {
   border-top: 1px solid rgba(232, 230, 225, 0.3);
   padding-top: 1.25rem;
   margin-top: 0;
 }
+.home-duos .content-section--light .content-section-title,
+.home-duos .content-section--accent .content-section-title,
+.duos-main .content-section--light .content-section-title,
+.duos-main .content-section--accent .content-section-title,
+.concept-main .content-section--light .content-section-title,
+.concept-main .content-section--accent .content-section-title {
+  border-top-color: rgba(31, 49, 61, 0.2);
+}
 /* Aligner le contenu en haut pour que le séparateur soit toujours collé en
    haut de la card (peu importe la hauteur de l'image). */
 .home-duos .content-section-content,
-.duos-main .content-section-content {
+.duos-main .content-section-content,
+.concept-main .content-section-content {
   justify-content: flex-start;
 }
 .home-duos-title            { font-weight: 700; font-size: clamp(2.5rem, 6vw, 5rem);
@@ -757,22 +772,19 @@ a {
 
 .concept-main {
   background: var(--color-bg-dark);
+  flex: 1;
 }
 
 .concept-hero {
   padding: var(--page-top-offset) var(--content-px) 5rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: start;
+  position: relative;
+}
+.concept-hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   max-width: var(--container);
   margin: 0 auto;
-}
-
-@media (max-width: 768px) {
-  .concept-hero {
-    grid-template-columns: 1fr;
-  }
 }
 
 .concept-hero-title {
@@ -789,7 +801,8 @@ a {
   font-size: 1rem;
   line-height: 1.7;
   color: var(--color-text-on-dark);
-  padding-top: 0.5rem;
+  max-width: 36rem;
+  margin: 0;
 }
 
 /* ─── ContentSection (générique, utilisé par concept page) ─────────────── */
@@ -861,6 +874,50 @@ a {
 }
 .content-section-content--right .content-section-cta-row { justify-content: flex-end; }
 .content-section-content--left  .content-section-cta-row { justify-content: flex-start; }
+
+/* ─── Concept card (variant accent sans image) ─────────────────────────── */
+
+.concept-card {
+  background: var(--primary-300);
+  border-radius: var(--radius-lg);
+  color: var(--color-text);
+  padding: 3rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+  width: calc(100% - 2 * var(--content-px));
+  max-width: var(--container);
+  margin: 6rem auto 6rem;
+}
+@media (max-width: 768px) {
+  .concept-card {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding: 2rem;
+  }
+}
+.concept-card-title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+.concept-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.concept-card-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 0;
+}
+.concept-card-cta-row {
+  display: flex;
+}
 
 /* ─── Duos page (liste) ────────────────────────────────────────────────── */
 

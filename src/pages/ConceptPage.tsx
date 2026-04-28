@@ -2,7 +2,7 @@ import { useACFOptionsPage } from "../hooks/useWordPress";
 import { acfReader } from "../components/acf";
 import { ConceptACF } from "../config/acf-schemas";
 import type { ConceptSectionItem, ContentVariant } from "../config/acf-schemas";
-import { ContentSection } from "../components/ui";
+import { ContentSection, CTAButton } from "../components/ui";
 
 // ─── Lorem ipsum (placeholders pré-prod tant que WP n'a pas de contenu) ───
 
@@ -20,9 +20,36 @@ const FAKE_SECTIONS: ConceptSectionItem[] = [
 function ConceptHero({ title, text }: { title: string; text: string }) {
   return (
     <section className="concept-hero" aria-label="Le concept">
-      <h1 className="concept-hero-title">{title}</h1>
-      <p className="concept-hero-text">{text}</p>
+      <div className="concept-hero-inner">
+        <h1 className="concept-hero-title">{title}</h1>
+        <p className="concept-hero-text">{text}</p>
+      </div>
     </section>
+  );
+}
+
+// ─── Card sans image (variant accent) ─────────────────────────────────────
+
+type ConceptCardProps = {
+  title: string;
+  text: string;
+  ctaLabel?: string;
+  ctaUrl?: string;
+};
+
+function ConceptCard({ title, text, ctaLabel, ctaUrl }: ConceptCardProps) {
+  return (
+    <article className="concept-card">
+      <h2 className="concept-card-title">{title}</h2>
+      <div className="concept-card-content">
+        <p className="concept-card-text">{text}</p>
+        {ctaLabel && ctaUrl && (
+          <div className="concept-card-cta-row">
+            <CTAButton href={ctaUrl}>{ctaLabel}</CTAButton>
+          </div>
+        )}
+      </div>
+    </article>
   );
 }
 
@@ -49,6 +76,20 @@ export function ConceptPage() {
         const imageAlt = item.image && typeof item.image === "object" && "alt" in item.image
           ? (item.image.alt ?? "")
           : "";
+
+        // Variant accent sans image → rendu en card (titre + texte + CTA, fond turquoise)
+        if (variant === "accent" && !imageUrl) {
+          return (
+            <ConceptCard
+              key={i}
+              title={item.title ?? ""}
+              text={item.text ?? ""}
+              ctaLabel={item.cta_label}
+              ctaUrl={item.cta_url}
+            />
+          );
+        }
+
         return (
           <ContentSection
             key={i}
