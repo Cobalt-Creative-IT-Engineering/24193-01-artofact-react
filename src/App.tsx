@@ -1,20 +1,12 @@
 import { useEffect } from "react";
 import { useRoute, navigate } from "./hooks/useRoute";
 import { Nav, Footer } from "./components/layout";
-import { ErrorBanner } from "./components/ui";
 import { HomePage }            from "./pages/HomePage";
-import { ArticlesPage }        from "./pages/ArticlesPage";
-import { ArticleDetailPage }   from "./pages/ArticleDetailPage";
-import { AboutPage }           from "./pages/AboutPage";
-import { InfoPage }            from "./pages/InfoPage";
-import { ContactPage }         from "./pages/ContactPage";
-import { LegalNoticePage }     from "./pages/LegalNoticePage";
-import { TermsPage }           from "./pages/TermsPage";
 import { ComingSoonPage }      from "./pages/ComingSoonPage";
 import { ConceptPage }         from "./pages/ConceptPage";
 import { DuosPage }            from "./pages/DuosPage";
 import { DuoDetailPage }       from "./pages/DuoDetailPage";
-import { WPPageView }          from "./pages/WPPageView";
+import { NotFoundPage }        from "./pages/NotFoundPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
 import { THEMES }              from "./themes/index";
 import { Decorations }         from "./themes/Decorations";
@@ -46,20 +38,13 @@ document.addEventListener("click", (e) => {
 });
 
 const PAGE_LABELS: Record<string, string> = {
-  "/articles":      "Articles",
-  "/about":         "À propos",
-  "/info":          "Infos",
-  "/contact":       "Contact",
-  "/legal-notice":  "Mentions légales",
-  "/terms":         "Conditions générales",
-  "/concept":       "Le concept",
-  "/duos":          "Les duos",
+  "/concept": "Le concept",
+  "/duos":    "Les duos",
 };
 
 function getPageLabel(route: string): string | undefined {
   if (route === "/" || route === "") return undefined;
   if (PAGE_LABELS[route]) return PAGE_LABELS[route];
-  if (route.startsWith("/articles/")) return "Article";
   if (route.startsWith("/duos/")) return "Les duos";
   return undefined;
 }
@@ -72,7 +57,7 @@ function shouldShowComingSoon(): boolean {
 }
 
 export default function App() {
-  const { route, slug, anchor } = useRoute();
+  const { route, anchor } = useRoute();
 
   // Infos du site WordPress (une seule fois) → initialise le module meta.
   useEffect(() => {
@@ -104,24 +89,16 @@ export default function App() {
     <div className="app">
       <Decorations />
       <Nav />
-      <PageView route={route} slug={slug} />
+      <PageView route={route} />
       <Footer />
     </div>
   );
 }
 
-function PageView({ route, slug }: { route: string; slug: string | null }) {
-  if (route === "/" || route === "")       return <HomePage />;
-  if (route === "/articles")               return <ArticlesPage />;
-  if (route.startsWith("/articles/"))      return <ArticleDetailPage slug={route.replace("/articles/", "")} />;
-  if (route === "/about")                  return <AboutPage />;
-  if (route === "/info")                   return <InfoPage />;
-  if (route === "/contact")                return <ContactPage />;
-  if (route === "/legal-notice")           return <LegalNoticePage />;
-  if (route === "/terms")                  return <TermsPage />;
-  if (route === "/concept")                return <ConceptPage />;
-  if (route === "/duos")                   return <DuosPage />;
-  if (route.startsWith("/duos/"))          return <DuoDetailPage slug={route.replace("/duos/", "")} />;
-  if (route.startsWith("/page/") && slug)  return <WPPageView slug={slug} />;
-  return <ErrorBanner message="Page non trouvée" />;
+function PageView({ route }: { route: string }) {
+  if (route === "/" || route === "")  return <HomePage />;
+  if (route === "/concept")           return <ConceptPage />;
+  if (route === "/duos")              return <DuosPage />;
+  if (route.startsWith("/duos/"))     return <DuoDetailPage slug={route.replace("/duos/", "")} />;
+  return <NotFoundPage />;
 }

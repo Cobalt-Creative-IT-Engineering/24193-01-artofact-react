@@ -69,6 +69,10 @@
   --container:      1264px;
   --content-px:     clamp(16px, 6vw, 88px);
 
+  /* Offset vertical pour décoller le contenu de la navbar fixe.
+     Appliqué sur les heros des pages internes (pas la home qui a un hero plein écran). */
+  --page-top-offset: 9rem;
+
   --z-nav:          50;
   --z-decorations:  10;
   --z-overlay:      100;
@@ -362,7 +366,7 @@ a {
 .page-content {
   max-width: var(--container);
   margin: 0 auto;
-  padding: 2.5rem var(--content-px) 4rem;
+  padding: var(--page-top-offset) var(--content-px) 4rem;
 }
 .page-title {
   font-family: var(--font-display);
@@ -435,7 +439,7 @@ a {
 .home-intro                 { padding: 5rem var(--content-px); position: relative; overflow: hidden; }
 .home-intro-sticker         { position: absolute; right: 0; top: 50%;
                               transform: translate(50%, -50%);
-                              width: clamp(12rem, 30vw, 22rem); height: auto;
+                              width: clamp(15rem, 38vw, 28rem); height: auto;
                               z-index: var(--z-decorations); pointer-events: none; }
 .home-intro-inner           { display: flex; flex-direction: column; gap: 2rem; max-width: var(--container);
                               margin: 0 auto; position: relative; z-index: 2; }
@@ -445,14 +449,35 @@ a {
 
 /* ─── Home : section duos ──────────────────────────────────────────────── */
 .home-duos                  { position: relative; }
+/* Espacement vertical entre les cards duo de la home */
+.home-duos > .content-section + .content-section { margin-top: 3rem; }
 .home-duos-sticker          { position: absolute; left: 0; top: 6rem; width: 8rem; height: auto;
                               z-index: var(--z-decorations); }
 .home-duos-header           { max-width: var(--container); margin: 0 auto;
-                              padding: 4rem var(--content-px) 2rem; text-align: right; position: relative; }
+                              padding: 4rem 0 2rem var(--content-px); text-align: right; position: relative; }
 /* Section Duos sur la home : image plus compacte que sur /duos. */
 @media (min-width: 768px) {
   .home-duos .content-section-image    { flex: 0 0 38%; }
   .home-duos .content-section-content  { flex: 1; }
+}
+
+/* Listing des duos (homepage + page /duos) : limiter la taille de l'image. */
+.home-duos .content-section-image,
+.duos-main .content-section-image      { max-width: 613px; max-height: 400px; }
+
+/* Listing des duos : séparateur fin au-dessus du titre du duo, limité à la
+   largeur de la colonne contenu (donc ne traverse pas l'image). */
+.home-duos .content-section-title,
+.duos-main .content-section-title {
+  border-top: 1px solid rgba(232, 230, 225, 0.3);
+  padding-top: 1.25rem;
+  margin-top: 0;
+}
+/* Aligner le contenu en haut pour que le séparateur soit toujours collé en
+   haut de la card (peu importe la hauteur de l'image). */
+.home-duos .content-section-content,
+.duos-main .content-section-content {
+  justify-content: flex-start;
 }
 .home-duos-title            { font-weight: 700; font-size: clamp(2.5rem, 6vw, 5rem);
                               color: var(--color-text-on-dark); letter-spacing: -0.03em; line-height: 1; }
@@ -484,7 +509,9 @@ a {
 /* ─── Home : section comptoir ──────────────────────────────────────────── */
 .home-comptoir              { padding: 5rem var(--content-px); }
 .home-comptoir-inner        { max-width: var(--container); margin: 0 auto; text-align: right; }
-.home-comptoir-title        { font-weight: 700; margin-bottom: 0.75rem;
+.home-comptoir-title        { font-weight: 700; margin-top: 0; margin-bottom: 0.75rem;
+                              padding-top: 1.25rem;
+                              border-top: 1px solid rgba(232, 230, 225, 0.3);
                               font-size: clamp(2.5rem, 6vw, 5rem); color: var(--color-text-on-dark);
                               letter-spacing: -0.03em; line-height: 1; }
 .home-comptoir-subtitle     { font-weight: 600; margin-bottom: 2rem;
@@ -492,12 +519,6 @@ a {
 .home-comptoir-text         { margin-bottom: 2.5rem; color: var(--color-text-on-dark);
                               max-width: 44rem; margin-left: auto; }
 .home-comptoir-cta-row      { display: flex; justify-content: flex-end; }
-
-/* ─── Séparateur de section (sur fond sombre) ──────────────────────────── */
-.section-separator          { max-width: var(--container); margin: 0 auto;
-                              padding: 0 var(--content-px); }
-.section-separator > hr     { border: 0; border-top: 1px solid rgba(232, 230, 225, 0.18);
-                              margin: 0; }
 
 /* ─── Articles (listing + card) ────────────────────────────────────────── */
 
@@ -589,6 +610,48 @@ a {
 .coming-soon-eta { font-size: 1rem; color: var(--text-muted); margin-bottom: 1.5rem; }
 .coming-soon-social { list-style: none; padding: 0; display: flex; gap: 1.25rem; justify-content: center; }
 .coming-soon-social a { color: var(--text-secondary); text-transform: capitalize; }
+
+/* ─── 404 Not Found ────────────────────────────────────────────────────── */
+
+.not-found {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--page-top-offset) var(--content-px) 5rem;
+  background: var(--color-bg-dark);
+}
+.not-found-inner {
+  max-width: 36rem;
+  text-align: center;
+  color: var(--color-text-on-dark);
+}
+.not-found-code {
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 12vw, 8rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  margin: 0 0 1rem;
+  color: var(--color-secondary);
+}
+.not-found-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 1rem;
+}
+.not-found-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  margin: 0 0 2rem;
+  opacity: 0.85;
+}
+.not-found-cta {
+  display: flex;
+  justify-content: center;
+}
 
 /* ─── Buttons (legacy blueprint — conservés pour les autres pages) ──────── */
 
@@ -695,7 +758,7 @@ a {
 }
 
 .concept-hero {
-  padding: 7rem var(--content-px) 5rem;
+  padding: var(--page-top-offset) var(--content-px) 5rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 3rem;
@@ -707,7 +770,6 @@ a {
 @media (max-width: 768px) {
   .concept-hero {
     grid-template-columns: 1fr;
-    padding: 5rem var(--content-px) 3rem;
   }
 }
 
@@ -735,6 +797,10 @@ a {
   flex-direction: column;
   position: relative;
   overflow: hidden;
+  max-width: var(--container);
+  width: calc(100% - 2 * var(--content-px));
+  margin-left:  auto;
+  margin-right: auto;
 }
 
 @media (min-width: 768px) {
@@ -761,13 +827,12 @@ a {
 
 .content-section-content {
   flex: 1;
-  padding: 3rem 2.5rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
 }
 @media (min-width: 768px) {
-  .content-section-content { padding: 4rem; }
+  .content-section-content { padding: 0 1rem 0 0; }
 }
 
 .content-section-content--right { text-align: right; }
@@ -800,19 +865,12 @@ a {
 .duos-main { background: var(--color-bg-dark); }
 
 .duos-hero {
-  padding: 7rem var(--content-px) 5rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
-  align-items: start;
+  padding: var(--page-top-offset) var(--content-px) 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
   max-width: var(--container);
   margin: 0 auto;
-}
-@media (max-width: 768px) {
-  .duos-hero {
-    grid-template-columns: 1fr;
-    padding: 5rem var(--content-px) 3rem;
-  }
 }
 .duos-hero-title {
   font-family: var(--font-display);
@@ -827,7 +885,7 @@ a {
   font-size: 1rem;
   line-height: 1.7;
   color: var(--color-text-on-dark);
-  padding-top: 0.5rem;
+  max-width: 48rem;
   margin: 0;
 }
 
@@ -836,7 +894,7 @@ a {
 .duo-detail-main { background: var(--color-bg-dark); }
 
 .duo-detail-hero {
-  padding: 7rem var(--content-px) 5rem;
+  padding: var(--page-top-offset) var(--content-px) 5rem;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 4rem;
@@ -847,7 +905,6 @@ a {
 @media (max-width: 900px) {
   .duo-detail-hero {
     grid-template-columns: 1fr;
-    padding: 5rem var(--content-px) 3rem;
     gap: 2.5rem;
   }
 }

@@ -111,8 +111,6 @@ export function HomePage() {
         </div>
       </section>
 
-      <div className="section-separator"><hr /></div>
-
       {/* ── Section Duos ── */}
       <section className="home-duos" aria-label="Les duos">
         <Sticker name="02" className="home-duos-sticker" />
@@ -139,8 +137,6 @@ export function HomePage() {
           );
         })}
       </section>
-
-      <div className="section-separator"><hr /></div>
 
       {/* ── Section Comptoir gruérien ── */}
       <section className="home-comptoir" aria-label="Comptoir gruérien">
