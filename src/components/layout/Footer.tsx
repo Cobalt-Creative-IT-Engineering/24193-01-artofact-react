@@ -12,18 +12,33 @@ const SOCIAL_ICONS: Record<keyof typeof SOCIAL_LINKS, string> = {
   youtube:   iconYoutube,
 };
 
-export function Footer() {
+type FooterProps = {
+  /** Si true, affiche l'adresse à la place du logo dans la colonne gauche.
+   *  Utilisé dans la NavOverlay pour montrer la fiche contact. */
+  showAddress?: boolean;
+};
+
+export function Footer({ showAddress = false }: FooterProps) {
   const socials = Object.entries(SOCIAL_LINKS).filter(([, url]) => !!url) as [keyof typeof SOCIAL_LINKS, string][];
 
   return (
     <footer className="footer">
       <div className="footer-inner">
 
-        {/* Gauche : logo */}
+        {/* Gauche : logo OU adresse */}
         <div>
-          <a href="/" aria-label="Artofact — accueil">
-            <img src={logoDark} alt="Artofact" className="footer-logo-img" />
-          </a>
+          {showAddress ? (
+            <address className="footer-address">
+              Artôfact<br />
+              p.a. FPE<br />
+              Rue de la Condémine 56<br />
+              1630 Bulle
+            </address>
+          ) : (
+            <a href="/" aria-label="Artofact — accueil">
+              <img src={logoDark} alt="Artofact" className="footer-logo-img" />
+            </a>
+          )}
         </div>
 
         {/* Centre : réseaux sociaux */}

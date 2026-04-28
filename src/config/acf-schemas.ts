@@ -68,22 +68,15 @@ export const HomeACF = {
   introCtaLabel:    "home_intro_cta_label",
   introCtaUrl:      "home_intro_cta_url",
   duosTitle:        "home_duos_title",
-  duosItems:        "home_duos_items",
   comptoirTitle:    "home_comptoir_title",
   comptoirSubtitle: "home_comptoir_subtitle",
   comptoirText:     "home_comptoir_text",
   comptoirCtaLabel: "home_comptoir_cta_label",
   comptoirCtaUrl:   "home_comptoir_cta_url",
 } as const;
-
-export type HomeDuoItem = {
-  title?: string;
-  subtitle?: string;
-  image?: { url: string; alt?: string } | number | null;
-  text?: string;
-  cta_label?: string;
-  cta_url?: string;
-};
+// Note : la section "Les duos" de la homepage est désormais alimentée par le
+// CPT `duo` via GraphQL (useDuosList) — l'ancien repeater home_duos_items et
+// le type HomeDuoItem ne sont plus utilisés.
 
 // ─── Options Page : "concept" ─────────────────────────────────────────────
 
@@ -111,20 +104,30 @@ export const DuosListingACF = {
   heroIntro: "duos_hero_intro",
 } as const;
 
-// ─── CPT : "duo" (ACF attachés à chaque post duo) ────────────────────────────
+// ─── CPT : "duo" (champs ACF lus via GraphQL — groupe "duoFields") ──────────
+//
+// Côté WP : groupe ACF "Duos" avec GraphQL Type Name = "duoFields", attaché au
+// CPT "Duo". Les valeurs remontent dans la query GraphQL sous `duoFields`.
 
-export const DuoACF = {
-  subtitle:  "duo_subtitle",
-  introText: "duo_intro_text",
-  members:   "duo_members",
-} as const;
+export type DuoImageNode = {
+  node: {
+    sourceUrl: string;
+    altText?: string | null;
+  };
+};
 
-export type DuoMemberItem = {
-  member_name?:      string;
-  member_photo?:     { url: string; alt?: string } | number | null;
-  member_text?:      string;
-  member_cta_label?: string;
-  member_cta_url?:   string;
+export type DuoFields = {
+  artiste?:     string | null;
+  entreprise?:  string | null;
+  description?: string | null;
+  lien?:        string | null;
+  image?:       DuoImageNode | null;
+};
+
+export type DuoNode = {
+  slug:        string;
+  title:       string;
+  duoFields?:  DuoFields | null;
 };
 
 // ─── Type utilitaire ──────────────────────────────────────────────────────

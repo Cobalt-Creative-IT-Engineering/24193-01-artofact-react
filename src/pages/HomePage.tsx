@@ -1,8 +1,8 @@
-import { useACFOptionsPage } from "../hooks/useWordPress";
+import { useACFOptionsPage, useDuosList } from "../hooks/useWordPress";
 import { acfReader } from "../components/acf";
 import { HomeACF } from "../config/acf-schemas";
-import type { HomeDuoItem } from "../config/acf-schemas";
-import { CTAButton, Sticker, WPContent } from "../components/ui";
+import type { DuoNode } from "../config/acf-schemas";
+import { CTAButton, ContentSection, Sticker, WPContent } from "../components/ui";
 import bannerImg from "../assets/images/banner.svg";
 import { formatDuoTitle } from "../lib/utils";
 
@@ -14,24 +14,22 @@ const LOREM_DUO = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etia
 
 const LOREM_COMPTOIR = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.";
 
-const FAKE_DUOS: HomeDuoItem[] = [
+// Fake data affichée si le CPT `duo` est vide en pré-prod
+const FAKE_DUOS_HOME: DuoNode[] = [
   {
-    title:     "Matthia Gremaud x Morand construction",
-    subtitle:  "Duo 1",
-    image:     null,
-    text:      LOREM_DUO,
-    cta_label: "Découvrir le concept",
-    cta_url:   "/duos/matthia-gremaud",
+    slug:  "matthia-gremaud-x-morand-construction",
+    title: "Matthia Gremaud x Morand construction",
+    duoFields: { artiste: "Matthia Gremaud", entreprise: "Morand construction", description: LOREM_DUO, lien: null, image: null },
   },
   {
-    title:     "ECAL x Ateliers Firmann",
-    subtitle:  "Duo 2",
-    image:     null,
-    text:      LOREM_DUO,
-    cta_label: "Découvrir le concept",
-    cta_url:   "/duos/ecal",
+    slug:  "ecal-x-atelier-firmann",
+    title: "Ecal x Atelier Firmann",
+    duoFields: { artiste: "Ecal", entreprise: "Atelier Firmann", description: LOREM_DUO, lien: null, image: null },
   },
 ];
+
+// Combien de duos affichés sur la home (les premiers retournés par GraphQL)
+const HOME_DUOS_LIMIT = 2;
 
 // ─── Hero ──────────────────────────────────────────────────────────────────
 
@@ -41,50 +39,6 @@ function HeroSection({ imageUrl, imageAlt }: { imageUrl: string | null; imageAlt
     <section className="home-hero" aria-label="Image d'introduction">
       <img src={src} alt={imageAlt} className="home-hero-image" />
     </section>
-  );
-}
-
-// ─── Duo card ─────────────────────────────────────────────────────────────
-
-type DuoCardProps = {
-  item: HomeDuoItem;
-  reversed: boolean;
-};
-
-function DuoCard({ item, reversed }: DuoCardProps) {
-  const imageUrl = item.image && typeof item.image === "object" && "url" in item.image
-    ? item.image.url
-    : null;
-  const imageAlt = item.image && typeof item.image === "object" && "alt" in item.image
-    ? (item.image.alt ?? "")
-    : "";
-
-  const contentAlign = reversed ? "duo-card-content--right" : "duo-card-content--left";
-  const cardDirection = reversed ? "duo-card--reversed" : "duo-card--normal";
-
-  return (
-    <div className={`duo-card ${cardDirection}`}>
-      <div className="duo-card-image">
-        <img src={imageUrl ?? bannerImg} alt={imageAlt} />
-      </div>
-
-      <div className={`duo-card-content ${contentAlign}`}>
-        {item.subtitle && (
-          <p className="duo-card-subtitle">{item.subtitle}</p>
-        )}
-        {item.title && (
-          <h3 className="duo-card-title">{formatDuoTitle(item.title)}</h3>
-        )}
-        {item.text && (
-          <p className="duo-card-text">{item.text}</p>
-        )}
-        {item.cta_label && item.cta_url && (
-          <div className="duo-card-cta-row">
-            <CTAButton href={item.cta_url}>{item.cta_label}</CTAButton>
-          </div>
-        )}
-      </div>
-    </div>
   );
 }
 
@@ -100,12 +54,22 @@ export function HomePage() {
   const introCtaLabel    = home.text("introCtaLabel");
   const introCtaUrl      = home.text("introCtaUrl");
   const duosTitle        = home.text("duosTitle");
-  const duosItems        = home.repeater<HomeDuoItem>("duosItems");
   const comptoirTitle    = home.text("comptoirTitle");
   const comptoirSubtitle = home.text("comptoirSubtitle");
   const comptoirText     = home.text("comptoirText");
   const comptoirCtaLabel = home.text("comptoirCtaLabel");
   const comptoirCtaUrl   = home.text("comptoirCtaUrl");
+
+  // Duos affichés sur la home : on prend les premiers retournés par le CPT.
+  // Si la liste est vide ou en cours de chargement, on affiche les fake en pré-prod.
+  const { data: duosData, status: duosStatus } = useDuosList();
+  const duosSource: DuoNode[] =
+    duosStatus === "success" && duosData && duosData.length > 0
+      ? duosData
+      : duosStatus === "loading" && !duosData
+      ? []
+      : FAKE_DUOS_HOME;
+  const duosToShow = duosSource.slice(0, HOME_DUOS_LIMIT);
 
   return (
     <main className="home-main">
@@ -157,9 +121,23 @@ export function HomePage() {
           <h2 className="home-duos-title">{duosTitle || "Les duos"}</h2>
         </div>
 
-        {(duosItems.length > 0 ? duosItems : FAKE_DUOS).map((item, i) => (
-          <DuoCard key={i} item={item} reversed={i % 2 !== 0} />
-        ))}
+        {duosToShow.map((duo, i) => {
+          const fields = duo.duoFields ?? {};
+          return (
+            <ContentSection
+              key={duo.slug}
+              titleNode={formatDuoTitle(duo.title)}
+              title={duo.title}
+              text={fields.description ?? ""}
+              imageUrl={fields.image?.node.sourceUrl ?? null}
+              imageAlt={fields.image?.node.altText ?? ""}
+              ctaLabel="Découvrir le duo"
+              ctaUrl={`/duos/${duo.slug}`}
+              variant="dark"
+              reversed={i % 2 !== 0}
+            />
+          );
+        })}
       </section>
 
       <div className="section-separator"><hr /></div>

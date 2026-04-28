@@ -2,24 +2,25 @@
 
 Ce document décrit **exactement** ce qu'il faut créer côté WordPress (Custom Post Type + Advanced Custom Fields) pour alimenter les pages `/duos` et `/duos/:slug` du site Artofact.
 
-Les noms de champs (slug ACF) doivent être respectés à l'identique — ils sont référencés dans `src/config/acf-schemas.ts` côté React.
+Les noms de champs et les noms GraphQL doivent être respectés à l'identique — ils sont référencés dans [src/config/acf-schemas.ts](../src/config/acf-schemas.ts) et dans les queries GraphQL côté React.
+
+> ⚠️ **Important — voie GraphQL** : contrairement aux pages d'accueil et concept (qui passent par les Options Pages REST/ACF), les duos sont lus côté React **via GraphQL** (WPGraphQL + WPGraphQL for ACF). La voie REST n'est **pas** utilisée. Voir [src/hooks/useWordPress.ts](../src/hooks/useWordPress.ts) — fonctions `useDuosList` et `useDuoBySlug`.
 
 ---
 
 ## 1. Prérequis WordPress
 
-Les plugins suivants doivent être actifs sur l'instance Artofact :
-
-- **Advanced Custom Fields (ACF PRO)** — création des groupes de champs, Options Pages et Repeaters
-- **ACF to REST API** — expose les champs ACF sur `/wp-json/acf/v3/*`
-
-> Si ACF PRO n'est pas dispo, les **Options Pages** ne sont pas supportées. Dans ce cas, attacher le groupe de champs à une Page WP "Duos listing" à la place.
+- **Advanced Custom Fields (ACF PRO)**
+- **WPGraphQL** (active la query `duos`, type `Duo`, etc.)
+- **WPGraphQL for ACF** (expose les champs ACF dans le schéma GraphQL)
 
 ---
 
-## 2. Enregistrement du CPT `duo`
+## 2. Custom Post Type `duo`
 
-Dans le `functions.php` du thème WordPress (ou dans un plugin dédié) :
+### 2.1 Création (UI ou programmatique)
+
+Voie programmatique dans `functions.php` :
 
 ```php
 add_action('init', function () {
@@ -33,182 +34,167 @@ add_action('init', function () {
         'public'       => true,
         'show_in_rest' => true,
         'rest_base'    => 'duos',
-        'supports'     => ['title', 'thumbnail'],
+        'show_in_graphql'      => true,
+        'graphql_single_name'  => 'duo',
+        'graphql_plural_name'  => 'duos',
+        'supports'     => ['title', 'editor', 'thumbnail'],
         'has_archive'  => false,
         'menu_icon'    => 'dashicons-groups',
     ]);
 });
 ```
 
-Points importants :
-- `rest_base` = `"duos"` — l'endpoint REST sera `/wp-json/wp/v2/duos`
-- `supports` inclut `thumbnail` — la featured media est utilisée comme image hero (page détail) ET comme image dans la card liste. **Pas de champ ACF image séparé.**
-- `show_in_rest` = `true` — obligatoire pour que le CPT soit exposé via REST API
+### 2.2 Paramètres GraphQL critiques
+
+Si tu utilises l'UI WordPress (Réglages → Type de publication → Duos → onglet GraphQL) :
+
+| Champ | Valeur |
+|---|---|
+| Show in GraphQL | activé |
+| GraphQL Single Name | `duo` |
+| GraphQL Plural Name | `duos` |
+
+⚠️ Le **Single Name** ne doit jamais être identique au nom d'un type ACF (sinon collision de schéma → l'OBJECT du groupe ACF reste orphelin).
 
 ---
 
-## 3. Options Sub-Page `duos-listing`
+## 3. Groupe de champs ACF "Duos"
 
-Cette Options Sub-Page alimente le hero de la page liste `/duos`.
+### 3.1 Champs
 
-### Création dans `functions.php`
+**Emplacement (Location Rules)** : `Type de publication` est égal à `Duo`.
 
-```php
-if (function_exists('acf_add_options_sub_page')) {
-    acf_add_options_sub_page([
-        'page_title'  => 'Duos — Listing',
-        'menu_title'  => 'Duos listing',
-        'parent_slug' => 'options-general.php',
-        'menu_slug'   => 'duos-listing',
-        'capability'  => 'edit_posts',
-    ]);
+| Slug (Field Name) | Label | Type | Notes |
+|---|---|---|---|
+| `artiste` | Artiste | Texte | Ex : "Matthia Gremaud" |
+| `entreprise` | Entreprise | Texte | Ex : "Morand construction" |
+| `description` | Description | Zone de texte | Paragraphe descriptif |
+| `image` | Image | Image | Return Format : **Image Array** ou **Image URL** |
+| `lien` | Lien | URL | Lien externe optionnel (vers le site du duo) |
+
+### 3.2 Paramètres GraphQL du groupe
+
+Sur l'écran d'édition du groupe → onglet **GraphQL** :
+
+| Champ | Valeur |
+|---|---|
+| Show in GraphQL | activé |
+| **GraphQL Type Name** | `duoFields` ⚠️ |
+| Manually Set GraphQL Types for Field Group | activé |
+| GraphQL Types to Show the Field Group On | cocher **Duo (Post Type)** |
+
+⚠️ Le **GraphQL Type Name** doit être différent du Single Name du CPT (`duo`) ET du Plural Name (`duos`) pour éviter une collision de schéma. La convention adoptée est `duoFields`.
+
+### 3.3 Vérification après modif
+
+À chaque changement de la config GraphQL d'un groupe ACF ou d'un CPT, **purger le cache du schéma WPGraphQL** :
+
+- **Réglages → Permaliens → Enregistrer les modifications** (sans rien changer)
+
+Sans cette purge, le schéma GraphQL conserve l'ancienne version et les modifs ne remontent pas.
+
+---
+
+## 4. Query GraphQL utilisée côté React
+
+### 4.1 Liste des duos (`/duos`)
+
+```graphql
+query GetDuosList {
+  duos(first: 100) {
+    nodes {
+      slug
+      title
+      duoFields {
+        artiste
+        entreprise
+        description
+        lien
+        image { node { sourceUrl altText } }
+      }
+    }
+  }
 }
 ```
 
-### Exposition REST
+### 4.2 Duo unique par slug (`/duos/:slug`)
 
-```php
-add_filter('acf/rest_api/options_pages', function ($pages) {
-    $pages[] = [
-        'slug' => 'duos-listing',
-        'name' => 'Duos listing',
-    ];
-    return $pages;
-});
-```
-
-### Champs ACF de l'Options Page
-
-**Nom du groupe** : `Duos — Hero listing`
-**Emplacement** : `Options Page` est égal à `Duos listing`
-
-| Slug (name) | Label | Type | Instructions |
-|---|---|---|---|
-| `duos_hero_title` | Titre du hero | Text | Ex : "Les duos". Fallback React : "Les duos". |
-| `duos_hero_intro` | Texte intro | Textarea | Paragraphe affiché à droite du titre dans le hero. |
-
----
-
-## 4. Groupe ACF "Duo"
-
-**Nom du groupe** : `Duo`
-**Emplacement** : `Type de post` est égal à `Duo`
-
-### 4.1 Champs principaux
-
-| Slug (name) | Label | Type | Instructions |
-|---|---|---|---|
-| `duo_subtitle` | Sous-titre | Text | Ex : "Un duo gravé dans le métal". Affiché sous le titre dans le hero détail. |
-| `duo_intro_text` | Texte intro | Textarea | Paragraphe descriptif. Utilisé dans la card liste ET dans le hero détail. |
-
-### 4.2 Repeater `duo_members`
-
-| Slug (name) | Label | Type | Options |
-|---|---|---|---|
-| `duo_members` | Membres du duo | Repeater | Min : 2, Max : 2. Layout : Block. |
-
-**Sous-champs du repeater `duo_members`** :
-
-| Slug (name) | Label | Type | Instructions |
-|---|---|---|---|
-| `member_name` | Nom | Text | Prénom + Nom ou nom de l'entité (ex : "Matthia Gremaud"). |
-| `member_photo` | Photo | Image | Return Format : **Image Array**. Photo portrait ou paysage de l'artiste/structure. |
-| `member_text` | Texte | Textarea | Description du membre, de son travail ou de son rôle dans le duo. |
-| `member_cta_label` | Libellé du bouton | Text | Ex : "Découvrir le duo". Laisser vide pour ne pas afficher de CTA. |
-| `member_cta_url` | URL du bouton | URL | URL externe (site de l'artiste, portfolio…). Le lien s'ouvre dans `target="_blank"`. |
-
-> **Note** : `member_cta_url` est une URL externe — le composant React détecte automatiquement les URLs commençant par `http` et ajoute `target="_blank" rel="noopener noreferrer"`.
-
----
-
-## 5. Vérification REST
-
-Une fois le CPT enregistré et quelques duos créés côté WP, les URLs suivantes doivent renvoyer du JSON :
-
-### Liste des duos (avec médias embarqués)
-
-```
-GET {VITE_WP_URL}/wp-json/wp/v2/duos?_embed=1&per_page=100
-```
-
-Réponse attendue (format simplifié) :
-
-```json
-[
-  {
-    "id": 42,
-    "slug": "ecal-ateliers-firmann",
-    "title": { "rendered": "ECAL x Ateliers Firmann" },
-    "acf": {
-      "duo_subtitle": "Un duo gravé dans le métal",
-      "duo_intro_text": "Lorem ipsum…",
-      "duo_members": [...]
-    },
-    "_embedded": {
-      "wp:featuredmedia": [
-        { "source_url": "https://…/photo.jpg", "alt_text": "" }
-      ]
+```graphql
+query GetDuoBySlug($slug: ID!) {
+  duo(id: $slug, idType: SLUG) {
+    slug
+    title
+    duoFields {
+      artiste
+      entreprise
+      description
+      lien
+      image { node { sourceUrl altText } }
     }
   }
-]
+}
 ```
 
-### Duo par slug
-
-```
-GET {VITE_WP_URL}/wp-json/wp/v2/duos?slug=ecal-ateliers-firmann&_embed=1
-```
-
-Retourne un tableau avec 0 ou 1 élément.
-
-### Options Sub-Page duos-listing
-
-```
-GET {VITE_WP_URL}/wp-json/acf/v3/options/duos-listing
-```
-
-Réponse attendue :
+### 4.3 Forme de la réponse
 
 ```json
 {
-  "acf": {
-    "duos_hero_title": "Les duos",
-    "duos_hero_intro": "Lorem ipsum…"
+  "data": {
+    "duo": {
+      "slug": "matthia-gremaud-x-morand-construction",
+      "title": "Matthia Gremaud x Morand construction",
+      "duoFields": {
+        "artiste": "Matthia Gremaud",
+        "entreprise": "Morand construction",
+        "description": "...",
+        "lien": null,
+        "image": {
+          "node": {
+            "sourceUrl": "https://artofact.cblt.ch/documents/banner-scaled.webp",
+            "altText": "banner"
+          }
+        }
+      }
+    }
   }
 }
 ```
 
 ---
 
-## 6. Côté React (référence des schémas TS)
-
-Une fois les ACF créés côté WP, les schémas déclarés dans `src/config/acf-schemas.ts` sont :
+## 5. Côté React (référence)
 
 ```ts
-// Options Sub-Page "duos-listing"
-export const DuosListingACF = {
-  heroTitle: "duos_hero_title",
-  heroIntro: "duos_hero_intro",
-} as const;
+// src/config/acf-schemas.ts
+export type DuoFields = {
+  artiste?:     string | null;
+  entreprise?:  string | null;
+  description?: string | null;
+  lien?:        string | null;
+  image?:       { node: { sourceUrl: string; altText?: string | null } } | null;
+};
 
-// CPT "duo"
-export const DuoACF = {
-  subtitle:  "duo_subtitle",
-  introText: "duo_intro_text",
-  members:   "duo_members",
-} as const;
-
-export type DuoMemberItem = {
-  member_name?:      string;
-  member_photo?:     { url: string; alt?: string } | number | null;
-  member_text?:      string;
-  member_cta_label?: string;
-  member_cta_url?:   string;
+export type DuoNode = {
+  slug:       string;
+  title:      string;
+  duoFields?: DuoFields | null;
 };
 ```
 
-Les appels React :
+Hooks dans [src/hooks/useWordPress.ts](../src/hooks/useWordPress.ts) :
 
-- **Page liste** : `useACFOptionsPage("duos-listing")` + `useCPT<RawDuo>("duos", { perPage: 100, embed: true })`
-- **Page détail** : `useCPTBySlug<RawDuo>("duos", slug)` — retourne l'item ou `null`
-- **Image** : `featured_media` WP uniquement (accessible via `_embedded["wp:featuredmedia"][0].source_url`). Pas de champ ACF image séparé.
+- `useDuosList()` → liste de `DuoNode[]`, GraphQL
+- `useDuoBySlug(slug)` → `DuoNode | null`, GraphQL
+
+Composants :
+
+- [src/pages/DuosPage.tsx](../src/pages/DuosPage.tsx) — page liste
+- [src/pages/DuoDetailPage.tsx](../src/pages/DuoDetailPage.tsx) — page détail (hero + 2 cards artiste/entreprise)
+
+---
+
+## 6. Évolutions possibles
+
+- Page d'attente Options page `duos-listing` (hero éditorial Title + Intro) — encore en place côté code mais lue en REST/ACF (`useACFOptionsPage("duos-listing")`). Si tout doit passer en GraphQL, migrer aussi cette options page.
+- Ajout de champs supplémentaires côté duo (date, ville, fichiers, photos individuelles artiste/entreprise) : ajouter le champ dans le groupe ACF, puis l'inclure dans le fragment GraphQL `duoFields` côté React.
+- Filtrage / pagination : `duos(first: N, after: $cursor)` est dispo nativement.

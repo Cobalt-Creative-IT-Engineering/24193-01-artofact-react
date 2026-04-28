@@ -33,9 +33,11 @@ export function ContentSection({
   const directionClass = reversed
     ? "content-section--reversed"
     : "content-section--normal";
+  // Texte aligné du côté opposé à l'image : image à gauche → texte aligné à
+  // droite (donc collé près de l'image), et inversement.
   const contentAlignClass = reversed
-    ? "content-section-content--right"
-    : "content-section-content--left";
+    ? "content-section-content--left"
+    : "content-section-content--right";
 
   return (
     <div

@@ -1,8 +1,6 @@
 import { useEffect } from "react";
-import { useCPTBySlug } from "../hooks/useWordPress";
-import { acfReader } from "../components/acf";
-import { DuoACF } from "../config/acf-schemas";
-import type { DuoMemberItem } from "../config/acf-schemas";
+import { useDuoBySlug } from "../hooks/useWordPress";
+import type { DuoNode } from "../config/acf-schemas";
 import { MemberCard } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 import { setPageMeta } from "../lib/meta";
@@ -12,101 +10,46 @@ import bannerImg from "../assets/images/banner.svg";
 
 const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.";
 
-// ─── Types internes ───────────────────────────────────────────────────────
+// ─── Fake data (affiché si WP retourne null après chargement) ────────────
 
-type RawDuo = {
-  slug: string;
-  title: { rendered: string };
-  acf: {
-    duo_subtitle?:   string;
-    duo_intro_text?: string;
-    duo_members?:    DuoMemberItem[];
-  };
-  _embedded?: Record<string, unknown>;
-};
-
-// ─── Fake data (affiché si WP retourne null) ──────────────────────────────
-
-const FAKE_DUO_DETAIL: RawDuo = {
-  slug:  "matthia-gremaud",
-  title: { rendered: "Matthia Gremaud x Ateliers Firmann" },
-  acf: {
-    duo_subtitle:   "Un duo gravé dans le métal",
-    duo_intro_text: LOREM,
-    duo_members: [
-      {
-        member_name:      "Matthia Gremaud",
-        member_photo:     null,
-        member_text:      LOREM,
-        member_cta_label: "Découvrir le duo",
-        member_cta_url:   "#",
-      },
-      {
-        member_name:      "Morand construction",
-        member_photo:     null,
-        member_text:      LOREM,
-        member_cta_label: "Découvrir le duo",
-        member_cta_url:   "#",
-      },
-    ],
+const FAKE_DUO_DETAIL: DuoNode = {
+  slug:  "matthia-gremaud-x-morand-construction",
+  title: "Matthia Gremaud x Morand construction",
+  duoFields: {
+    artiste:     "Matthia Gremaud",
+    entreprise:  "Morand construction",
+    description: LOREM,
+    lien:        null,
+    image:       null,
   },
 };
 
-// ─── Helpers : résolution photo membre ────────────────────────────────────
-
-function resolveMemberPhotoUrl(
-  photo: DuoMemberItem["member_photo"]
-): string | null {
-  if (!photo) return null;
-  if (typeof photo === "object" && "url" in photo) return photo.url;
-  return null;
-}
-
-function resolveMemberPhotoAlt(
-  photo: DuoMemberItem["member_photo"]
-): string {
-  if (!photo) return "";
-  if (typeof photo === "object" && "alt" in photo) return photo.alt ?? "";
-  return "";
-}
-
-// ─── Helper : extrait l'URL de la featured media depuis _embedded ─────────
-
-function getFeaturedMediaUrl(duo: RawDuo): string | null {
-  const media = duo._embedded?.["wp:featuredmedia"];
-  if (!Array.isArray(media) || !media[0]) return null;
-  const m = media[0] as Record<string, unknown>;
-  return typeof m.source_url === "string" ? m.source_url : null;
-}
-
-// ─── Hero détail (composant local) ───────────────────────────────────────
+// ─── Hero détail ─────────────────────────────────────────────────────────
 
 type DuoDetailHeroProps = {
   title: string;
-  subtitle: string;
-  introText: string;
+  description: string;
   imageUrl: string | null;
+  imageAlt: string;
+  lien: string | null;
 };
 
-function DuoDetailHero({
-  title,
-  subtitle,
-  introText,
-  imageUrl,
-}: DuoDetailHeroProps) {
+function DuoDetailHero({ title, description, imageUrl, imageAlt, lien }: DuoDetailHeroProps) {
   return (
     <section className="duo-detail-hero" aria-label={title}>
       <div className="duo-detail-hero-content">
         <h1 className="duo-detail-hero-title">{formatDuoTitle(title)}</h1>
-        {subtitle && (
-          <p className="duo-detail-hero-subtitle">{subtitle}</p>
-        )}
-        {introText && (
-          <p className="duo-detail-hero-text">{introText}</p>
+        {description && <p className="duo-detail-hero-text">{description}</p>}
+        {lien && (
+          <div>
+            <a href={lien} target="_blank" rel="noopener noreferrer" className="btn-cta">
+              En savoir plus
+            </a>
+          </div>
         )}
       </div>
       <div className="duo-detail-hero-image">
-        <img src={imageUrl ?? bannerImg} alt={title} />
+        <img src={imageUrl ?? bannerImg} alt={imageAlt || title} />
       </div>
     </section>
   );
@@ -115,21 +58,23 @@ function DuoDetailHero({
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export function DuoDetailPage({ slug }: { slug: string }) {
-  const { data, status } = useCPTBySlug<RawDuo>("duos", slug);
+  const { data, status } = useDuoBySlug(slug);
 
   // Si loading sans donnée en cache, on ne rend rien (pas de flash fake → réel).
   // Si status success mais data null, on utilise le fake.
-  const duo: RawDuo | null =
+  const duo: DuoNode | null =
     status === "loading" && !data
       ? null
       : (data ?? FAKE_DUO_DETAIL);
 
-  const reader = acfReader(duo?.acf ?? null, DuoACF);
-  const titleRendered = duo?.title.rendered ?? "";
-  const subtitle      = reader.text("subtitle");
-  const introText     = reader.text("introText");
-  const members       = reader.repeater<DuoMemberItem>("members");
-  const heroImageUrl  = duo ? getFeaturedMediaUrl(duo) : null;
+  const titleRendered = duo?.title ?? "";
+  const fields        = duo?.duoFields ?? {};
+  const artiste       = fields.artiste ?? "";
+  const entreprise    = fields.entreprise ?? "";
+  const description   = fields.description ?? "";
+  const lien          = fields.lien ?? null;
+  const heroImageUrl  = fields.image?.node.sourceUrl ?? null;
+  const heroImageAlt  = fields.image?.node.altText ?? "";
 
   useEffect(() => {
     if (!titleRendered) return;
@@ -142,27 +87,33 @@ export function DuoDetailPage({ slug }: { slug: string }) {
     <main className="duo-detail-main">
       <DuoDetailHero
         title={titleRendered}
-        subtitle={subtitle}
-        introText={introText}
+        description={description}
         imageUrl={heroImageUrl}
+        imageAlt={heroImageAlt}
+        lien={lien}
       />
 
-      {members.length > 0 && (
+      {(artiste || entreprise) && (
         <section className="duo-detail-members">
           <div className="duo-detail-members-inner">
             <h2 className="duo-detail-members-title">Les membres du duo</h2>
             <div className="duo-detail-members-grid">
-              {members.map((m, i) => (
+              {artiste && (
                 <MemberCard
-                  key={i}
-                  name={m.member_name ?? ""}
-                  photoUrl={resolveMemberPhotoUrl(m.member_photo)}
-                  photoAlt={resolveMemberPhotoAlt(m.member_photo)}
-                  text={m.member_text ?? ""}
-                  ctaLabel={m.member_cta_label}
-                  ctaUrl={m.member_cta_url}
+                  name={artiste}
+                  photoUrl={null}
+                  photoAlt={artiste}
+                  text=""
                 />
-              ))}
+              )}
+              {entreprise && (
+                <MemberCard
+                  name={entreprise}
+                  photoUrl={null}
+                  photoAlt={entreprise}
+                  text=""
+                />
+              )}
             </div>
           </div>
         </section>

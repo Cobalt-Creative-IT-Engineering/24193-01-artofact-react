@@ -284,16 +284,63 @@ export async function prefetchCPTItems(
   );
 }
 
+// ─── GraphQL — Duos (CPT + ACF) ──────────────────────────────────────────
+//
+// Les duos sont gérés en GraphQL (pas en REST) : le groupe ACF "Duos" expose
+// un sub-field `duoFields` sur le type `Duo` (CPT). Voir doc/acf_duos.md.
+
+import type { DuoNode } from "../config/acf-schemas";
+
+const GQL_DUO_FIELDS_FRAGMENT = `
+  slug
+  title
+  duoFields {
+    artiste
+    entreprise
+    description
+    lien
+    image { node { sourceUrl altText } }
+  }
+`;
+
+const GQL_DUOS_LIST = `
+  query GetDuosList {
+    duos(first: 100) {
+      nodes { ${GQL_DUO_FIELDS_FRAGMENT} }
+    }
+  }
+`;
+
+const GQL_DUO_BY_SLUG = `
+  query GetDuoBySlug($slug: ID!) {
+    duo(id: $slug, idType: SLUG) { ${GQL_DUO_FIELDS_FRAGMENT} }
+  }
+`;
+
+type GqlDuosListResponse = { duos: { nodes: DuoNode[] } };
+type GqlDuoBySlugResponse = { duo: DuoNode | null };
+
+export function useDuosList() {
+  return useFetch<DuoNode[]>(
+    () => graphqlFetch<GqlDuosListResponse>(GQL_DUOS_LIST).then(r => r.duos?.nodes ?? []),
+    { cacheKey: "gql:duos:list", staleMs: 60_000, persist: true }
+  );
+}
+
+export function useDuoBySlug(slug: string) {
+  return useFetch<DuoNode | null>(
+    () =>
+      slug
+        ? graphqlFetch<GqlDuoBySlugResponse>(GQL_DUO_BY_SLUG, { slug }).then(r => r.duo ?? null)
+        : Promise.resolve(null),
+    { cacheKey: `gql:duo:${slug}`, persist: true }
+  );
+}
+
 // ─── GraphQL — exemple documenté ──────────────────────────────────────────
 //
-// Le blueprint laisse `graphqlFetch` disponible (voir src/lib/wordpress.ts)
-// pour les cas où REST n'expose pas un champ (connexions MediaItem, options
-// pages typées, etc.). Ci-dessous, un hook d'exemple à dupliquer/adapter.
-//
-// Pour que ça fonctionne, vous devez :
-//   1. Avoir activé WPGraphQL + WPGraphQL for ACF côté WordPress
-//   2. Définir l'Options page correspondante dans WP (graphql_field_name)
-//   3. Typer la réponse dans src/types/wordpress.ts
+// `graphqlFetch` est aussi dispo pour d'autres cas où REST ne suffit pas
+// (connexions MediaItem, options pages typées, etc.).
 
 /**
  * Exemple : charge une Options page nommée `siteSettings` via GraphQL.

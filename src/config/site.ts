@@ -32,14 +32,14 @@ export const SITE_CONFIG = {
 // ─── Réseaux sociaux ──────────────────────────────────────────────────────────
 // À renseigner avec les vrais liens Artofact
 export const SOCIAL_LINKS = {
-  instagram: "",
+  instagram: "https://www.instagram.com/artofact_/",
   linkedin:  "",
   youtube:   "",
 } as const;
 
 // ─── Types de navigation ──────────────────────────────────────────────────────
 
-export type NavChildItem = { id: number; title: string; url: string };
+export type NavChildItem = { id: number | string; title: string; url: string };
 export type NavItem = {
   id: number;
   title: string;
