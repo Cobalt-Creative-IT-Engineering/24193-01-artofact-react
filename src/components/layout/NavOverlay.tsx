@@ -1,9 +1,19 @@
 import { createPortal } from "react-dom";
-import { NAV_ITEMS } from "../../config/site";
+import { NAV_ITEMS, SOCIAL_LINKS } from "../../config/site";
 import type { NavChildItem } from "../../config/site";
 import { useDuosList } from "../../hooks/useWordPress";
 import logoDark from "../../assets/logo/artofact-dark.svg";
-import { Footer } from "./Footer";
+import mobiliereLogo from "../../assets/images/partners/mobiliere.svg";
+import fpeLogo from "../../assets/images/partners/fpe.svg";
+import iconInstagram from "../../assets/icon/icon_instagram.svg";
+import iconLinkedin from "../../assets/icon/icon_linkedin.svg";
+import iconYoutube from "../../assets/icon/icon_youtube.svg";
+
+const SOCIAL_ICONS: Record<keyof typeof SOCIAL_LINKS, string> = {
+  instagram: iconInstagram,
+  linkedin:  iconLinkedin,
+  youtube:   iconYoutube,
+};
 
 type Props = { onClose: () => void };
 
@@ -19,6 +29,8 @@ export function NavOverlay({ onClose }: Props) {
     if (url !== "/duos" || !duosData || duosData.length === 0) return undefined;
     return duosData.map(d => ({ id: d.slug, title: d.title, url: `/duos/${d.slug}` }));
   };
+
+  const socials = Object.entries(SOCIAL_LINKS).filter(([, url]) => !!url) as [keyof typeof SOCIAL_LINKS, string][];
 
   const overlay = (
     <div className="nav-overlay" role="dialog" aria-modal="true" aria-label="Navigation">
@@ -65,7 +77,45 @@ export function NavOverlay({ onClose }: Props) {
         </div>
       </nav>
 
-      <Footer showAddress />
+      <div className="nav-overlay-footer">
+        <div className="nav-overlay-footer-inner">
+          <address className="nav-overlay-footer-address">
+            Artôfact<br />
+            p.a. FPE<br />
+            Rue de la Condémine 56<br />
+            1630 Bulle
+          </address>
+
+          {socials.length > 0 && (
+            <div className="nav-overlay-footer-social">
+              <p className="nav-overlay-footer-title">Suivez-nous&nbsp;!</p>
+              <ul className="nav-overlay-footer-social-icons">
+                {socials.map(([name, url]) => (
+                  <li key={name}>
+                    <a
+                      href={url}
+                      target="_blank"
+                      rel="noreferrer"
+                      aria-label={name}
+                      className="nav-overlay-footer-social-icon"
+                    >
+                      <img src={SOCIAL_ICONS[name]} alt="" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="nav-overlay-footer-partners">
+            <p className="nav-overlay-footer-title">Presenting partners:</p>
+            <div className="nav-overlay-footer-partners-row">
+              <img src={mobiliereLogo} alt="la Mobilière" />
+              <img src={fpeLogo} alt="FPE — Fédération Patronale et Économique" />
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 

@@ -39,8 +39,8 @@
   --color-bg-dark:      var(--neutral-900);     /* fond sombre (#1F313D) */
   --color-text:         var(--neutral-900);     /* texte sur fond clair  */
   --color-text-on-dark: var(--tertiary-300);    /* texte sur fond sombre */
-  --color-accent:       var(--secondary-300);   /* CTA      (#D9F299) */
-  --color-accent-hover: var(--secondary-500);   /* CTA hover */
+  --color-accent:       var(--secondary-500);   /* CTA      (#B3CF5D) */
+  --color-accent-hover: var(--secondary-700);   /* CTA hover (#8DA054) */
   --color-secondary:    var(--primary-500);     /* sous-titres, stickers */
   --color-muted:        var(--neutral-500);
 
@@ -57,7 +57,7 @@
   --accent-contrast:var(--color-text);
   --secondary:      var(--color-secondary);
 
-  /* Typo — placeholders ; valeurs précises à compléter (cf doc/design_system.md §3) */
+  /* Typo — fallback système ; le thème actif redéfinit avec sa font-family (cf doc/design_system.md §3) */
   --font-display:   ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-body:      ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 
@@ -80,6 +80,25 @@
 
 html.theme-base {
   /* Artofact brand — overrides :root defaults above */
+  --font-display: "Work Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-body:    "Work Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+/* ─── Fonts (Work Sans, variable) ──────────────────────────────────────── */
+
+@font-face {
+  font-family: "Work Sans";
+  src: url("./assets/fonts/Work Sans/WorkSans-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Work Sans";
+  src: url("./assets/fonts/Work Sans/WorkSans-Italic-VariableFont_wght.ttf") format("truetype-variations");
+  font-weight: 100 900;
+  font-style: italic;
+  font-display: swap;
 }
 
 /* ─── Base layout ──────────────────────────────────────────────────────── */
@@ -114,7 +133,7 @@ a {
   padding: 0.75rem 2rem;
   border-radius: var(--radius-pill);
   background: var(--color-accent);
-  color: var(--color-text);
+  color: var(--neutral-100);
   font-weight: 700;
   font-size: 0.95rem;
   letter-spacing: 0.01em;
@@ -124,6 +143,15 @@ a {
 }
 .btn-cta:hover {
   filter: brightness(0.92);
+}
+
+/* Exception : CTA dans les éléments duo (home section + page /duos + page /duos/:slug)
+   → fond blanc, texte gris (neutral-500) */
+.home-duos .btn-cta,
+.duos-main .btn-cta,
+.duo-detail-main .btn-cta {
+  background: var(--neutral-100);
+  color: var(--neutral-500);
 }
 
 /* ─── Nav ──────────────────────────────────────────────────────────────── */
@@ -182,7 +210,9 @@ a {
   cursor: pointer;
   padding: 0.5rem;
   color: var(--color-text-on-dark);
+  transition: opacity 0.15s ease;
 }
+.nav-burger:hover { opacity: 0.65; }
 
 .nav-burger-line {
   display: block;
@@ -202,7 +232,7 @@ a {
   position: fixed;
   inset: 0;
   z-index: var(--z-overlay);
-  background: var(--color-bg);
+  background: var(--neutral-300);
   display: flex;
   flex-direction: column;
   overflow-y: auto;
@@ -236,7 +266,9 @@ a {
   justify-content: center;
   width: 40px;
   height: 40px;
+  transition: opacity 0.15s ease;
 }
+.nav-overlay-close-btn:hover { opacity: 0.65; }
 .nav-overlay-close-line {
   display: block;
   width: 24px;
@@ -281,12 +313,77 @@ a {
 }
 .nav-overlay-sublink:hover { opacity: 0.6; color: var(--color-text); }
 
+/* Footer de l'overlay — adresse + réseaux + partenaires, séparateur en haut.
+   Distinct du <Footer /> de page (qui montre le logo, pas l'adresse). */
+.nav-overlay-footer {
+  border-top: 1px solid rgba(31, 49, 61, 0.2);
+  padding: 2.5rem var(--content-px);
+}
+.nav-overlay-footer-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 3rem;
+  max-width: var(--container);
+  margin: 0 auto;
+  align-items: center;
+}
+@media (max-width: 768px) {
+  .nav-overlay-footer-inner {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+}
+.nav-overlay-footer-address {
+  font-weight: 700;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--color-text);
+  font-style: normal;
+}
+.nav-overlay-footer-social { justify-self: center; text-align: center; }
+.nav-overlay-footer-partners { justify-self: end; text-align: right; }
+.nav-overlay-footer-title {
+  font-weight: 700;
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  color: var(--color-text);
+}
+.nav-overlay-footer-social-icons {
+  display: flex;
+  gap: 0.75rem;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.nav-overlay-footer-social-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: var(--color-text);
+  transition: opacity 0.15s;
+}
+.nav-overlay-footer-social-icon:hover { opacity: 0.65; }
+.nav-overlay-footer-partners-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.nav-overlay-footer-partners-row > img {
+  height: 2rem;
+  width: auto;
+  object-fit: contain;
+}
+
 /* ─── Footer ───────────────────────────────────────────────────────────── */
 
 .footer {
   margin-top: auto;
   border-top: 1px solid var(--border);
-  background: var(--color-bg);
+  background: var(--neutral-100);
   padding: 2.5rem var(--content-px);
 }
 .footer-inner {
@@ -405,7 +502,7 @@ a {
 
 .home-hero {
   position: relative;
-  min-height: 70vh;
+  min-height: 90vh;
   display: flex;
   align-items: flex-end;
   overflow: hidden;
@@ -471,12 +568,12 @@ a {
 .duos-main .content-section-image,
 .concept-main .content-section-image      { max-width: 613px; max-height: 400px; }
 
-/* Listing : séparateur fin au-dessus du titre, limité à la largeur de la
-   colonne contenu (donc ne traverse pas l'image). Couleur claire par défaut
-   (lisible sur fond sombre), foncée pour les variants light / accent. */
+/* Listing duos (home + page /duos) : séparateur fin au-dessus du titre,
+   limité à la largeur de la colonne contenu (donc ne traverse pas l'image).
+   Couleur claire par défaut (lisible sur fond sombre), foncée pour les
+   variants light / accent. */
 .home-duos .content-section-title,
-.duos-main .content-section-title,
-.concept-main .content-section-title {
+.duos-main .content-section-title {
   border-top: 1px solid rgba(232, 230, 225, 0.3);
   padding-top: 1.25rem;
   margin-top: 0;
@@ -484,10 +581,21 @@ a {
 .home-duos .content-section--light .content-section-title,
 .home-duos .content-section--accent .content-section-title,
 .duos-main .content-section--light .content-section-title,
-.duos-main .content-section--accent .content-section-title,
-.concept-main .content-section--light .content-section-title,
-.concept-main .content-section--accent .content-section-title {
+.duos-main .content-section--accent .content-section-title {
   border-top-color: rgba(31, 49, 61, 0.2);
+}
+
+/* Concept page : variant light (« Des duos favorisant l'échange ») en pleine
+   largeur, fond gris clair, marges verticales. La technique box-shadow +
+   clip-path étend le fond jusqu'aux bords du viewport sans déborder. */
+.concept-main .content-section--light {
+  background: var(--neutral-300);
+  box-shadow: 0 0 0 100vmax var(--neutral-300);
+  clip-path: inset(0 -100vmax);
+  margin-top: 5rem;
+  margin-bottom: 5rem;
+  padding: 3rem 0;
+  gap: 3rem;
 }
 /* Aligner le contenu en haut pour que le séparateur soit toujours collé en
    haut de la card (peu importe la hauteur de l'image). */
@@ -495,6 +603,18 @@ a {
 .duos-main .content-section-content,
 .concept-main .content-section-content {
   justify-content: flex-start;
+}
+/* Listing duos : marge interne du côté de l'image pour que le séparateur du
+   titre ne touche pas la photo. Override du `padding: 0 1rem 0 0` global. */
+@media (min-width: 768px) {
+  .home-duos .content-section--normal .content-section-content,
+  .duos-main .content-section--normal .content-section-content {
+    padding: 0 0 0 2rem;
+  }
+  .home-duos .content-section--reversed .content-section-content,
+  .duos-main .content-section--reversed .content-section-content {
+    padding: 0 2rem 0 0;
+  }
 }
 .home-duos-title            { font-weight: 700; font-size: clamp(2.5rem, 6vw, 5rem);
                               color: var(--color-text-on-dark); letter-spacing: -0.03em; line-height: 1; }

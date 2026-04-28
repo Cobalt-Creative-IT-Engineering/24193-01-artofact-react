@@ -53,7 +53,24 @@ Palette en 4 familles × 5 tons (100 → 900). Plus le numéro est élevé, plus
 | `tertiary-700` | `#957D64` |
 | `tertiary-900` | `#605244` |
 
-> **Note** : valeurs extraites par pipetage automatique du PNG `color.png` (script `/tmp/extract_colors.py`). À confirmer si une source plus précise (Figma JSON) est dispo.
+> **Note** : valeurs extraites par pipetage automatique du PNG `color.png`. À confirmer si une source plus précise (Figma JSON) est dispo.
+
+### Mapping sémantique appliqué
+
+Les rôles UI sont déjà branchés sur les tokens DS dans [src/index.css](../src/index.css) :
+
+| Token sémantique | Token DS | Usage |
+|---|---|---|
+| `--color-bg`           | `tertiary-300`  | Fond clair (page, cards light) |
+| `--color-bg-dark`      | `neutral-900`   | Fond sombre (home, /duos, /concept) |
+| `--color-text`         | `neutral-900`   | Texte sur fond clair |
+| `--color-text-on-dark` | `tertiary-300`  | Texte sur fond sombre |
+| `--color-accent`       | `secondary-300` | CTA (pill verte) |
+| `--color-accent-hover` | `secondary-500` | CTA hover |
+| `--color-secondary`    | `primary-500`   | Sous-titres, stickers |
+| `--color-muted`        | `neutral-500`   | Texte secondaire |
+
+Le variant `accent` (cards `concept-card`, `duo-member-card`) utilise `primary-300` directement.
 
 ---
 
@@ -82,29 +99,34 @@ Système de grille 3 breakpoints, basé sur des colonnes fixes + gutters/margins
 - Grille : **12 colonnes**
 - Largeurs : 1 col 76 px · 2 cols 184 px · 3 cols 292 px · 4 cols 400 px · 5 cols 508 px · 6 cols 616 px · 7 cols 724 px · 8 cols 832 px · 9 cols 940 px · 10 cols 1048 px · 11 cols 1156 px · 12 cols 1264 px
 
-### Mapping CSS variables (proposition)
+### Mapping CSS appliqué
+
+Le code utilise deux variables consolidées plutôt qu'un set par breakpoint :
 
 ```css
-:root {
-  --container-mobile:  400px;
-  --container-tablet:  768px;
-  --container-desktop: 1440px;
-  --margin-mobile:      16px;
-  --margin-tablet:      32px;
-  --margin-desktop:     88px;
-  --gutter-mobile:      16px;
-  --gutter-tablet:      24px;
-  --gutter-desktop:     32px;
-}
+--container:   1264px;                     /* contenu max desktop = 1440 - 2 × 88 */
+--content-px:  clamp(16px, 6vw, 88px);     /* margin gauche/droite : 16 mobile → 88 desktop */
 ```
 
-> Le projet utilisait jusqu'ici `--container: 72rem (= 1152 px)` et `--content-px: clamp(1.25rem, 5vw, 3rem)`. À harmoniser avec ce DS — voir §4 "Migration".
+Le `clamp()` interpole linéairement entre les valeurs mobile (16 px) et desktop (88 px) — pas besoin de breakpoints discrets pour les marges. La largeur de contenu est plafonnée à `1264 px` au-delà de 1440 px de viewport.
+
+Les colonnes de la grille (4 / 8 / 12) ne sont pas exposées en variables CSS pour l'instant — les layouts utilisent `flex` ou `grid` au cas par cas.
 
 ---
 
 ## 3. Typographie
 
-Hiérarchie des tokens (lue dans `typo.png`) :
+### Famille
+
+**Work Sans** (Google Fonts) — variable font, weights 100 → 900, italique inclus.
+
+- Fichiers : [src/assets/fonts/Work Sans/](../src/assets/fonts/Work%20Sans/)
+  - `WorkSans-VariableFont_wght.ttf` — normal
+  - `WorkSans-Italic-VariableFont_wght.ttf` — italique
+- Déclaration `@font-face` dans [src/index.css](../src/index.css) (deux blocs, `font-display: swap`, `font-weight: 100 900`).
+- Exposée via `--font-display` et `--font-body` (override dans `html.theme-base`).
+
+### Hiérarchie des tokens (référence Figma)
 
 | Famille | Tokens |
 |---|---|
@@ -116,46 +138,37 @@ Hiérarchie des tokens (lue dans `typo.png`) :
 | **Button** | `button-lg`, `button-md`, `button-sm` |
 | **Nav** | `nav-lg`, `nav-md` |
 
-### À fournir pour chaque token
+### État actuel dans le code
 
-- `font-family` (la police affichée dans `typo.png` est une sans-serif géométrique — **nom à confirmer**)
-- `font-size` (en px ou rem)
-- `line-height` (en px, rem ou unitless)
-- `font-weight` (400 / 500 / 600 / 700 / …)
-- `letter-spacing` (le cas échéant)
-
-### Fichiers de fonts
-
-- À placer dans [src/assets/fonts/](../src/assets/fonts/) (dossier déjà créé, vide).
-- Format préféré : `.woff2` (taille + compatibilité optimales).
-- Déclaration `@font-face` à ajouter dans [src/index.css](../src/index.css).
+Les tailles ne sont **pas tokenisées** — les composants utilisent des `font-size: clamp(...)` inline (cf. `.duos-hero-title`, `.content-section-title`, etc.). Voir §5 pour les valeurs à extraire et tokeniser.
 
 ---
 
-## 4. Migration / mapping vers le code actuel
+## 4. Migration / état du code
 
-État avant intégration du DS (à mettre à jour quand le DS est appliqué) :
+L'intégration des couleurs et du layout DS est **terminée**. La typographie l'est partiellement (font-family OK, tailles à tokeniser).
 
-| Variable CSS actuelle | Valeur actuelle | Token DS correspondant |
+| Variable CSS | Source DS | État |
 |---|---|---|
-| `--color-bg`        | `#E8E6E1` | aucun direct — proche de `tertiary-300` (`#F5ECE5`) ? À trancher |
-| `--color-bg-dark`   | `#1F313D` | `neutral-900` ✓ |
-| `--color-text`      | `#1A2A3A` | proche de `neutral-900` — à aligner exactement sur `#1F313D` ? |
-| `--color-accent`    | `#C6E85E` | proche de `secondary-300/500` (entre `#D9F299` et `#B3CF5D`) — à choisir |
-| `--color-secondary` | `#50B6B0` | proche de `primary-500` (`#4EBBCA`) — à aligner |
-| `--color-muted`     | `#8A8A85` | proche de `neutral-500` (`#8E9DA9`) — à aligner |
-| `--container`       | `72rem` (1152 px) | non aligné DS — DS prévoit `1440px` desktop avec marges 88px → contenu 1264px |
-| `--content-px`      | `clamp(1.25rem, 5vw, 3rem)` | non aligné DS — DS prévoit margins fixes 16/32/88 selon breakpoint |
+| `--color-bg`           | `tertiary-300` (`#F5ECE5`)   | ✓ aligné |
+| `--color-bg-dark`      | `neutral-900` (`#1F313D`)    | ✓ aligné |
+| `--color-text`         | `neutral-900` (`#1F313D`)    | ✓ aligné |
+| `--color-text-on-dark` | `tertiary-300` (`#F5ECE5`)   | ✓ aligné |
+| `--color-accent`       | `secondary-300` (`#D9F299`)  | ✓ aligné |
+| `--color-accent-hover` | `secondary-500` (`#B3CF5D`)  | ✓ aligné |
+| `--color-secondary`    | `primary-500` (`#4EBBCA`)    | ✓ aligné |
+| `--color-muted`        | `neutral-500` (`#8E9DA9`)    | ✓ aligné |
+| `--container`          | 1264 px (desktop content)    | ✓ aligné |
+| `--content-px`         | clamp(16, 6vw, 88) px        | ✓ aligné |
+| `--font-display` / `--font-body` | Work Sans          | ✓ chargée via @font-face |
+| Tokens typo (`display-lg`, `heading-xl`, …) | cf §3      | ✗ pas tokenisé (clamp inline) |
+
+Aliases legacy (`--bg`, `--surface`, `--accent`, etc.) restent pour ne pas casser les anciens composants — à dégraisser progressivement.
 
 ---
 
 ## 5. À compléter / valider
 
-Pour finaliser l'intégration du DS, il faut :
-
-1. **Typographie** :
-   - Nom de la font-family (et fichiers `.woff2` si custom)
-   - Pour chaque token (`display-lg`, `heading-xl`, `body-md`, `button-md`, `nav-lg`, etc.) : `font-size`, `line-height`, `font-weight`, et `letter-spacing` éventuel
-2. **Couleurs** : confirmer que les hex extraits ci-dessus sont corrects à 100 %, ou fournir un export précis (JSON Figma Tokens, doc Figma, etc.)
-3. **Mapping sémantique** : pour chaque rôle UI (texte primaire, texte secondaire, fond CTA, bordure, etc.), désigner le token DS à utiliser
-4. **Confirmation breakpoints** : la valeur `400 px` pour mobile est inhabituelle (la plupart des design systems prennent `640 / 768` comme premier breakpoint) — à confirmer
+1. **Typographie** : extraire les valeurs de chaque token (`font-size`, `line-height`, `font-weight`, `letter-spacing`) depuis Figma et créer des classes utilitaires ou variables CSS dédiées (en remplacement des `clamp()` inline)
+2. **Couleurs** : confirmer que les hex extraits du PNG sont corrects à 100 %, ou fournir un export précis (JSON Figma Tokens)
+3. **Confirmation breakpoints** : la valeur `400 px` pour mobile est inhabituelle (la plupart des design systems prennent `640 / 768` comme premier breakpoint) — à confirmer
