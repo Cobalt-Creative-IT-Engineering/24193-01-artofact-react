@@ -85,6 +85,48 @@ export type HomeDuoItem = {
   cta_url?: string;
 };
 
+// ─── Options Page : "concept" ─────────────────────────────────────────────
+
+export const ConceptACF = {
+  heroTitle: "concept_hero_title",
+  heroText:  "concept_hero_text",
+  sections:  "concept_sections",
+} as const;
+
+export type ContentVariant = "dark" | "light" | "accent";
+
+export type ConceptSectionItem = {
+  title?:     string;
+  text?:      string;
+  cta_label?: string;
+  cta_url?:   string;
+  image?:     { url: string; alt?: string } | number | null;
+  variant?:   ContentVariant;
+};
+
+// ─── Options Page : "duos-listing" ───────────────────────────────────────────
+
+export const DuosListingACF = {
+  heroTitle: "duos_hero_title",
+  heroIntro: "duos_hero_intro",
+} as const;
+
+// ─── CPT : "duo" (ACF attachés à chaque post duo) ────────────────────────────
+
+export const DuoACF = {
+  subtitle:  "duo_subtitle",
+  introText: "duo_intro_text",
+  members:   "duo_members",
+} as const;
+
+export type DuoMemberItem = {
+  member_name?:      string;
+  member_photo?:     { url: string; alt?: string } | number | null;
+  member_text?:      string;
+  member_cta_label?: string;
+  member_cta_url?:   string;
+};
+
 // ─── Type utilitaire ──────────────────────────────────────────────────────
 
 /** Type d'un schéma ACF générique */

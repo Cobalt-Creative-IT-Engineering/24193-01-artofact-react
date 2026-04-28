@@ -5,4 +5,6 @@ export { Pagination }                  from "./Pagination";
 export { WPContent }                   from "./WPContent";
 export { LogoPlaceholder }             from "./LogoPlaceholder";
 export { CTAButton }                   from "./CTAButton";
-export { HalfCircleDecoration, CircleDecoration } from "./Decorations";
+export { Sticker }                     from "./Sticker";
+export { ContentSection }              from "./ContentSection";
+export { MemberCard }                  from "./MemberCard";

@@ -1,5 +1,7 @@
 import { SOCIAL_LINKS } from "../../config/site";
-import { LogoPlaceholder } from "../ui";
+import logoDark from "../../assets/logo/artofact-dark.svg";
+import mobiliereLogo from "../../assets/images/partners/mobiliere.svg";
+import fpeLogo from "../../assets/images/partners/fpe.svg";
 
 function IconInstagram() {
   return (
@@ -43,17 +45,11 @@ export function Footer() {
     <footer className="footer">
       <div className="footer-inner">
 
-        {/* Gauche : logo + adresse */}
+        {/* Gauche : logo */}
         <div>
           <a href="/" aria-label="Artofact — accueil">
-            <LogoPlaceholder className="h-10 w-auto" />
+            <img src={logoDark} alt="Artofact" className="footer-logo-img" />
           </a>
-          <address className="footer-address" style={{ fontStyle: "normal" }}>
-            Artôfact<br />
-            p.a. FPE<br />
-            Rue de la Condémine 56<br />
-            1630 Bulle
-          </address>
         </div>
 
         {/* Centre : réseaux sociaux */}
@@ -82,12 +78,11 @@ export function Footer() {
         )}
 
         {/* Droite : presenting partners */}
-        <div style={{ textAlign: "right" }}>
+        <div className="footer-col-end">
           <p className="footer-partners-title">Presenting partners:</p>
-          <div>
-            {/* TODO: remplacer par les vrais logos SVG Mobilière/FPE quand fournis */}
-            <span className="footer-partner-badge">la Mobilière</span>
-            <span className="footer-partner-badge">FPE</span>
+          <div className="footer-partners-row">
+            <img src={mobiliereLogo} alt="la Mobilière" className="footer-partner-logo" />
+            <img src={fpeLogo} alt="FPE — Fédération Patronale et Économique" className="footer-partner-logo" />
           </div>
         </div>
 

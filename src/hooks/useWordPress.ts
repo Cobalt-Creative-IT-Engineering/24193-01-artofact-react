@@ -196,6 +196,26 @@ export function useCPT<T extends Record<string, unknown>>(
   );
 }
 
+/**
+ * Charge un item CPT unique par son slug WP.
+ * Retourne `null` si aucun item ne correspond (404 ou tableau vide).
+ * Active automatiquement `_embed` pour inclure la featured media.
+ */
+export function useCPTBySlug<T extends Record<string, unknown>>(
+  cptSlug: string,
+  slug: string
+): FetchState<T | null> & { refetch: () => void } {
+  return useFetch<T | null>(
+    () =>
+      slug
+        ? getCPT<T>(cptSlug, { slug, perPage: 1, embed: true }).then(
+            (r) => r[0] ?? null
+          )
+        : Promise.resolve(null),
+    { cacheKey: `cpt:${cptSlug}:slug:${slug}`, persist: true }
+  );
+}
+
 export function useCategories() {
   return useFetch(() => getCategories(), { cacheKey: "categories", persist: true });
 }

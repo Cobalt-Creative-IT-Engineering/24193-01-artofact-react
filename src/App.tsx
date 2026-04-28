@@ -11,6 +11,9 @@ import { ContactPage }         from "./pages/ContactPage";
 import { LegalNoticePage }     from "./pages/LegalNoticePage";
 import { TermsPage }           from "./pages/TermsPage";
 import { ComingSoonPage }      from "./pages/ComingSoonPage";
+import { ConceptPage }         from "./pages/ConceptPage";
+import { DuosPage }            from "./pages/DuosPage";
+import { DuoDetailPage }       from "./pages/DuoDetailPage";
 import { WPPageView }          from "./pages/WPPageView";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
 import { THEMES }              from "./themes/index";
@@ -49,12 +52,15 @@ const PAGE_LABELS: Record<string, string> = {
   "/contact":       "Contact",
   "/legal-notice":  "Mentions légales",
   "/terms":         "Conditions générales",
+  "/concept":       "Le concept",
+  "/duos":          "Les duos",
 };
 
 function getPageLabel(route: string): string | undefined {
   if (route === "/" || route === "") return undefined;
   if (PAGE_LABELS[route]) return PAGE_LABELS[route];
   if (route.startsWith("/articles/")) return "Article";
+  if (route.startsWith("/duos/")) return "Les duos";
   return undefined;
 }
 
@@ -113,6 +119,9 @@ function PageView({ route, slug }: { route: string; slug: string | null }) {
   if (route === "/contact")                return <ContactPage />;
   if (route === "/legal-notice")           return <LegalNoticePage />;
   if (route === "/terms")                  return <TermsPage />;
+  if (route === "/concept")                return <ConceptPage />;
+  if (route === "/duos")                   return <DuosPage />;
+  if (route.startsWith("/duos/"))          return <DuoDetailPage slug={route.replace("/duos/", "")} />;
   if (route.startsWith("/page/") && slug)  return <WPPageView slug={slug} />;
   return <ErrorBanner message="Page non trouvée" />;
 }

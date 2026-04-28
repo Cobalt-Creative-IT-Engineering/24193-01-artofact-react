@@ -37,14 +37,28 @@ export const SOCIAL_LINKS = {
   youtube:   "",
 } as const;
 
+// ─── Types de navigation ──────────────────────────────────────────────────────
+
+export type NavChildItem = { id: number; title: string; url: string };
+export type NavItem = {
+  id: number;
+  title: string;
+  url: string;
+  cta: boolean;
+  children?: readonly NavChildItem[];
+};
+
 // cta: true → s'affiche à droite du nav en style bouton
 // cta: false → lien standard (dans le menu full-screen)
-export const NAV_ITEMS = [
+export const NAV_ITEMS: readonly NavItem[] = [
   { id: 1, title: "Concept",            url: "/concept",           cta: false },
   { id: 2, title: "Organisation",       url: "/organisation",      cta: false },
   { id: 3, title: "Comptoir gruérien",  url: "/comptoir-gruerien", cta: false },
   { id: 4, title: "Partenaires",        url: "/partenaires",       cta: false },
-  { id: 5, title: "Les duos",           url: "/duos",              cta: true  },
-] as const;
-
-export type NavItem = (typeof NAV_ITEMS)[number];
+  { id: 5, title: "Les duos",           url: "/duos",              cta: true,
+    children: [
+      { id: 51, title: "Matthia Gremaud × Morand construction", url: "/duos/matthia-gremaud" },
+      { id: 52, title: "ECAL × Ateliers Firmann",               url: "/duos/ecal" },
+    ],
+  },
+];

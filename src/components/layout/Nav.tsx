@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { LogoPlaceholder } from "../ui";
+import logoWhite from "../../assets/logo/artofact-white.svg";
+import { NavOverlay } from "./NavOverlay";
 
 export function Nav() {
   const [scrolled, setScrolled] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 40);
@@ -11,29 +13,49 @@ export function Nav() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  // Scroll lock quand l'overlay est ouvert
+  useEffect(() => {
+    if (!isOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [isOpen]);
+
+  // Fermeture via Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setIsOpen(false); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [isOpen]);
+
   return (
-    <header className={`nav-wrapper${scrolled ? " nav-wrapper--scrolled" : ""}`}>
-      <div className="nav-inner">
-        {/* Placeholder left — même largeur que le burger pour équilibrer */}
-        <div className="nav-side" aria-hidden="true" />
+    <>
+      <header className={`nav-wrapper${scrolled ? " nav-wrapper--scrolled" : ""}`}>
+        <div className="nav-inner">
+          {/* Placeholder left — même largeur que le burger pour équilibrer */}
+          <div className="nav-side" aria-hidden="true" />
 
-        <a href="/" className="nav-logo" aria-label="Artofact — accueil">
-          <LogoPlaceholder style={{ width: "7rem", height: "auto", color: "#E8E6E1" }} />
-        </a>
+          <a href="/" className="nav-logo" aria-label="Artofact — accueil">
+            <img src={logoWhite} alt="Artofact" className="nav-logo-img" />
+          </a>
 
-        {/* Burger visuel uniquement — le menu full-screen sera implémenté séparément */}
-        <div className="nav-side nav-side--right">
-          <button
-            type="button"
-            className="nav-burger"
-            aria-label="Menu"
-            aria-expanded="false"
-          >
-            <span className="nav-burger-line" />
-            <span className="nav-burger-line" />
-          </button>
+          <div className="nav-side nav-side--right">
+            <button
+              type="button"
+              className={`nav-burger${isOpen ? " nav-burger--open" : ""}`}
+              aria-label="Menu"
+              aria-expanded={isOpen}
+              onClick={() => setIsOpen(o => !o)}
+            >
+              <span className="nav-burger-line" />
+              <span className="nav-burger-line" />
+            </button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {isOpen && <NavOverlay onClose={() => setIsOpen(false)} />}
+    </>
   );
 }
