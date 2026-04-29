@@ -61,20 +61,27 @@ function imageProps(image: PageSection["image"]): { url: string | null; alt: str
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export function ConceptPage() {
-  const { data, status } = useConceptContent();
+  const { data } = useConceptContent();
   const enTete     = data?.enTete;
   const zoneGrise  = data?.zoneGrise;
   const carte      = data?.carte;
   const piedDePage = data?.piedDePage;
 
-  const heroTitle = enTete?.titre || "Le concept";
-  const heroText  = enTete?.texte || (status !== "loading" ? LOREM : "");
-
   return (
     <main className="concept-main">
-      <ConceptHero title={heroTitle} text={heroText} />
+      {/* Hero hardcodé (titre + intro générique de la page) */}
+      <ConceptHero title="Concept" text={LOREM} />
 
-      {/* Section grise (variant light) — rendue en pleine largeur via CSS */}
+      {/* En-tête (variant dark, image à droite) */}
+      {(enTete?.titre || enTete?.texte) && (
+        <ConceptListSection
+          item={enTete}
+          variant="dark"
+          reversed
+        />
+      )}
+
+      {/* Section grise (variant light, image à gauche) — pleine largeur via CSS */}
       {(zoneGrise?.titre || zoneGrise?.texte) && (
         <ConceptListSection
           item={zoneGrise}
@@ -83,7 +90,7 @@ export function ConceptPage() {
         />
       )}
 
-      {/* Pied-de-page (variant dark, image à gauche) */}
+      {/* Pied-de-page (variant dark, image à droite) */}
       {(piedDePage?.titre || piedDePage?.texte) && (
         <ConceptListSection
           item={piedDePage}

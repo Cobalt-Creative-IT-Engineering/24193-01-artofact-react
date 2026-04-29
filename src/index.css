@@ -154,10 +154,13 @@ a {
 }
 
 /* Exception : CTA dans les éléments duo (home section + page /duos + page /duos/:slug)
-   → fond blanc, texte gris (neutral-500) */
+   et dans les sections sombres / card de la page concept → fond blanc, texte gris.
+   La zone grise (variant light) garde le style par défaut (vert). */
 .home-duos .btn-cta,
 .duos-main .btn-cta,
-.duo-detail-main .btn-cta {
+.duo-detail-main .btn-cta,
+.concept-main .content-section--dark .btn-cta,
+.concept-main .concept-card .btn-cta {
   background: var(--neutral-100);
   color: var(--neutral-500);
 }
