@@ -13,7 +13,9 @@ const SOCIAL_ICONS: Record<keyof typeof SOCIAL_LINKS, string> = {
 };
 
 export function Footer() {
-  const socials = Object.entries(SOCIAL_LINKS).filter(([, url]) => !!url) as [keyof typeof SOCIAL_LINKS, string][];
+  // On affiche TOUTES les icônes (instagram, linkedin, youtube) — celles
+  // sans URL sont rendues désactivées en attendant le lien réel.
+  const socials = Object.entries(SOCIAL_LINKS) as [keyof typeof SOCIAL_LINKS, string][];
 
   return (
     <footer className="footer">
@@ -27,12 +29,12 @@ export function Footer() {
         </div>
 
         {/* Centre : réseaux sociaux */}
-        {socials.length > 0 && (
-          <div className="footer-social">
-            <p className="footer-social-title">Suivez-nous&nbsp;!</p>
-            <ul className="footer-social-icons">
-              {socials.map(([name, url]) => (
-                <li key={name}>
+        <div className="footer-social">
+          <p className="footer-social-title">Suivez-nous&nbsp;!</p>
+          <ul className="footer-social-icons">
+            {socials.map(([name, url]) => (
+              <li key={name}>
+                {url ? (
                   <a
                     href={url}
                     target="_blank"
@@ -42,11 +44,18 @@ export function Footer() {
                   >
                     <img src={SOCIAL_ICONS[name]} alt="" className="footer-social-icon-img" />
                   </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+                ) : (
+                  <span
+                    aria-label={`${name} (bientôt disponible)`}
+                    className="footer-social-icon footer-social-icon--disabled"
+                  >
+                    <img src={SOCIAL_ICONS[name]} alt="" className="footer-social-icon-img" />
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
 
         {/* Droite : presenting partners */}
         <div className="footer-col-end">

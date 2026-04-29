@@ -1,6 +1,6 @@
 import { useHomeContent, useDuosList } from "../hooks/useWordPress";
 import type { DuoNode, AcfLink } from "../config/acf-schemas";
-import { CTAButton, ContentSection } from "../components/ui";
+import { CTAButton, ContentSection, Sticker } from "../components/ui";
 import bannerImg from "../assets/images/banner.svg";
 import { formatDuoTitle } from "../lib/utils";
 
@@ -32,8 +32,8 @@ const FAKE_DUOS_HOME: DuoNode[] = [
   },
 ];
 
-// Combien de duos affichés sur la home (les premiers retournés par GraphQL)
-const HOME_DUOS_LIMIT = 2;
+// Nombre initial de duos affichés sur la home (incrémenté au clic sur « Voir plus »)
+const HOME_DUOS_INITIAL = 2;
 
 // ─── Hero ──────────────────────────────────────────────────────────────────
 
@@ -63,11 +63,13 @@ export function HomePage() {
   const introText  = enTete?.texte || (status !== "loading" ? LOREM_INTRO : "");
   const introCta   = linkProps(enTete?.lien);
 
-  const piedTitle = piedDePage?.titre || "Comptoir gruérien";
-  const piedText  = piedDePage?.texte || (status !== "loading" ? LOREM_COMPTOIR : "");
-  const piedCta   = linkProps(piedDePage?.lien);
+  const piedTitle    = piedDePage?.titre || "Comptoir gruérien";
+  const piedSubtitle = piedDePage?.sousTitre ?? "";
+  const piedText     = piedDePage?.texte || (status !== "loading" ? LOREM_COMPTOIR : "");
+  const piedCta      = linkProps(piedDePage?.lien);
 
   // Duos affichés sur la home : on prend les premiers retournés par le CPT.
+  // Pagination : démarre à HOME_DUOS_INITIAL, +1 à chaque clic sur « Voir plus ».
   const { data: duosData, status: duosStatus } = useDuosList();
   const duosSource: DuoNode[] =
     duosStatus === "success" && duosData && duosData.length > 0
@@ -75,7 +77,9 @@ export function HomePage() {
       : duosStatus === "loading" && !duosData
       ? []
       : FAKE_DUOS_HOME;
-  const duosToShow = duosSource.slice(0, HOME_DUOS_LIMIT);
+
+  const duosToShow = duosSource.slice(0, HOME_DUOS_INITIAL);
+  const hasMoreDuos = duosSource.length > HOME_DUOS_INITIAL;
 
   return (
     <main className="home-main">
@@ -85,6 +89,8 @@ export function HomePage() {
 
       {/* ── Section En-tête (ACF enTete) ── */}
       <section className="home-intro" aria-label="Introduction">
+        <Sticker name="01" className="home-intro-sticker" />
+
         <div className="home-intro-inner">
           <h2 className="home-intro-title">{introTitle}</h2>
           <p className="home-intro-text">{introText}</p>
@@ -98,6 +104,8 @@ export function HomePage() {
 
       {/* ── Section Duos (CPT) ── */}
       <section className="home-duos" aria-label="Les duos">
+        <Sticker name="02" className="home-duos-sticker" />
+
         <div className="home-duos-header">
           <h2 className="home-duos-title">Les duos</h2>
         </div>
@@ -119,12 +127,19 @@ export function HomePage() {
             />
           );
         })}
+
+        {hasMoreDuos && (
+          <div className="home-duos-more">
+            <CTAButton href="/duos">Les autres duos</CTAButton>
+          </div>
+        )}
       </section>
 
       {/* ── Section Pied de page (ACF piedDePage) ── */}
       <section className="home-comptoir" aria-label={piedTitle}>
         <div className="home-comptoir-inner">
           <h2 className="home-comptoir-title">{piedTitle}</h2>
+          {piedSubtitle && <p className="home-comptoir-subtitle">{piedSubtitle}</p>}
           <p className="home-comptoir-text">{piedText}</p>
           <div className="home-comptoir-cta-row">
             {piedCta && <CTAButton href={piedCta.href}>{piedCta.label}</CTAButton>}

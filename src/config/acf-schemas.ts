@@ -51,9 +51,16 @@ export type PageSectionTextOnly = {
 
 // ─── Page d'accueil — pageAccueilContent.pageDAccueil ────────────────────
 
+export type HomePiedDePage = {
+  titre?:     string | null;
+  sousTitre?: string | null;
+  texte?:     string | null;
+  lien?:      AcfLink | null;
+};
+
 export type HomeContent = {
   enTete?:     PageSectionTextOnly | null;
-  piedDePage?: PageSectionTextOnly | null;
+  piedDePage?: HomePiedDePage | null;
 };
 
 export type HomeContentResponse = {

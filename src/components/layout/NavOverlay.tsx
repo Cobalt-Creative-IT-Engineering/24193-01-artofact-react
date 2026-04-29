@@ -30,7 +30,9 @@ export function NavOverlay({ onClose }: Props) {
     return duosData.map(d => ({ id: d.slug, title: d.title, url: `/duos/${d.slug}` }));
   };
 
-  const socials = Object.entries(SOCIAL_LINKS).filter(([, url]) => !!url) as [keyof typeof SOCIAL_LINKS, string][];
+  // On affiche TOUTES les icônes (instagram, linkedin, youtube) — celles
+  // sans URL sont rendues désactivées en attendant le lien réel.
+  const socials = Object.entries(SOCIAL_LINKS) as [keyof typeof SOCIAL_LINKS, string][];
 
   const overlay = (
     <div className="nav-overlay" role="dialog" aria-modal="true" aria-label="Navigation">
@@ -86,12 +88,12 @@ export function NavOverlay({ onClose }: Props) {
             1630 Bulle
           </address>
 
-          {socials.length > 0 && (
-            <div className="nav-overlay-footer-social">
-              <p className="nav-overlay-footer-title">Suivez-nous&nbsp;!</p>
-              <ul className="nav-overlay-footer-social-icons">
-                {socials.map(([name, url]) => (
-                  <li key={name}>
+          <div className="nav-overlay-footer-social">
+            <p className="nav-overlay-footer-title">Suivez-nous&nbsp;!</p>
+            <ul className="nav-overlay-footer-social-icons">
+              {socials.map(([name, url]) => (
+                <li key={name}>
+                  {url ? (
                     <a
                       href={url}
                       target="_blank"
@@ -101,11 +103,18 @@ export function NavOverlay({ onClose }: Props) {
                     >
                       <img src={SOCIAL_ICONS[name]} alt="" />
                     </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
+                  ) : (
+                    <span
+                      aria-label={`${name} (bientôt disponible)`}
+                      className="nav-overlay-footer-social-icon nav-overlay-footer-social-icon--disabled"
+                    >
+                      <img src={SOCIAL_ICONS[name]} alt="" />
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <div className="nav-overlay-footer-partners">
             <p className="nav-overlay-footer-title">Presenting partners:</p>

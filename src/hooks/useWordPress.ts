@@ -363,7 +363,7 @@ const GQL_HOME_CONTENT = `
     pageAccueilContent {
       pageDAccueil {
         enTete     { titre texte lien { ${GQL_LINK_FRAGMENT} } }
-        piedDePage { titre texte lien { ${GQL_LINK_FRAGMENT} } }
+        piedDePage { titre sousTitre texte lien { ${GQL_LINK_FRAGMENT} } }
       }
     }
   }
