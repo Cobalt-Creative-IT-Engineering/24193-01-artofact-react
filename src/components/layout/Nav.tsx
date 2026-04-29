@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import logoWhite from "../../assets/logo/artofact-white.svg";
+import iconBurgerOpen from "../../assets/icon/icon_burger_open.svg";
 import { NavOverlay } from "./NavOverlay";
 
 export function Nav() {
@@ -43,13 +44,12 @@ export function Nav() {
           <div className="nav-side nav-side--right">
             <button
               type="button"
-              className={`nav-burger${isOpen ? " nav-burger--open" : ""}`}
+              className="nav-toggle"
               aria-label="Menu"
               aria-expanded={isOpen}
               onClick={() => setIsOpen(o => !o)}
             >
-              <span className="nav-burger-line" />
-              <span className="nav-burger-line" />
+              <img src={iconBurgerOpen} alt="" className="nav-toggle-icon" />
             </button>
           </div>
         </div>

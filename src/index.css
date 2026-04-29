@@ -38,7 +38,7 @@
   --color-bg:           var(--tertiary-300);    /* fond clair  (#F5ECE5) */
   --color-bg-dark:      var(--neutral-900);     /* fond sombre (#1F313D) */
   --color-text:         var(--neutral-900);     /* texte sur fond clair  */
-  --color-text-on-dark: var(--tertiary-300);    /* texte sur fond sombre */
+  --color-text-on-dark: var(--neutral-100);     /* texte sur fond sombre (blanc pur) */
   --color-accent:       var(--secondary-500);   /* CTA      (#B3CF5D) */
   --color-accent-hover: var(--secondary-700);   /* CTA hover (#8DA054) */
   --color-secondary:    var(--primary-500);     /* sous-titres, stickers */
@@ -110,6 +110,12 @@ html, body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
+
+/* Réserver en permanence l'espace de la scrollbar pour éviter que la viewport
+   ne « saute » quand `body { overflow: hidden }` est activé à l'ouverture de
+   l'overlay nav. Sans ça, burger et croix de fermeture se trouvent à des x
+   différents (décalage = largeur de la scrollbar). */
+html { scrollbar-gutter: stable; }
 
 body {
   min-height: 100vh;
@@ -185,9 +191,7 @@ a {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  max-width: var(--container);
-  margin: 0 auto;
-  padding: 1rem var(--content-px);
+  padding: 1rem clamp(0.75rem, 2vw, 1.5rem);
 }
 
 .nav-logo {
@@ -211,31 +215,25 @@ a {
   grid-column: 3;
 }
 
-.nav-burger {
+/* Bouton toggle navbar (open + close) — utilise les SVG dans assets/icon/ */
+.nav-toggle {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 5px;
+  width: 40px;
+  height: 40px;
   background: none;
   border: none;
   cursor: pointer;
-  padding: 0.5rem;
-  color: var(--color-text-on-dark);
+  padding: 0;
   transition: opacity 0.15s ease;
 }
-.nav-burger:hover { opacity: 0.65; }
-
-.nav-burger-line {
-  display: block;
-  width: 24px;
-  height: 2px;
-  background: currentColor;
-  transition: transform 0.2s, opacity 0.2s;
+.nav-toggle:hover { opacity: 0.65; }
+.nav-toggle-icon {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
-
-/* ─── Nav : burger état ouvert ─────────────────────────────────────────── */
-.nav-burger--open .nav-burger-line:first-child { transform: translateY(3.5px) rotate(45deg); }
-.nav-burger--open .nav-burger-line:last-child  { transform: translateY(-3.5px) rotate(-45deg); }
 
 /* ─── Nav overlay ──────────────────────────────────────────────────────── */
 
@@ -252,7 +250,7 @@ a {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  padding: 1rem var(--content-px);
+  padding: 1rem clamp(0.75rem, 2vw, 1.5rem);
 }
 .nav-overlay-logo {
   display: flex;
@@ -265,26 +263,6 @@ a {
 .nav-overlay-close {
   display: flex;
   justify-content: flex-end;
-}
-.nav-overlay-close-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem;
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  transition: opacity 0.15s ease;
-}
-.nav-overlay-close-btn:hover { opacity: 0.65; }
-.nav-overlay-close-line {
-  display: block;
-  width: 24px;
-  height: 2px;
-  background: currentColor;
 }
 .nav-overlay-body {
   flex: 1;
@@ -710,7 +688,7 @@ a {
                               letter-spacing: -0.03em; line-height: 1; }
 .home-comptoir-subtitle     { font-family: var(--font-display); font-weight: 600;
                               margin-bottom: 2rem;
-                              font-size: clamp(1.5rem, 3.5vw, 2.25rem); color: var(--neutral-100); }
+                              font-size: clamp(1.5rem, 3.5vw, 2.25rem); color: var(--color-text-on-dark); }
 .home-comptoir-text         { margin-bottom: 2.5rem; color: var(--color-text-on-dark);
                               max-width: 44rem; margin-left: auto; }
 .home-comptoir-cta-row      { display: flex; justify-content: flex-end; }
@@ -1200,7 +1178,7 @@ a {
   font-family: var(--font-display);
   font-size: clamp(1.5rem, 3.5vw, 2.25rem);
   font-weight: 700;
-  color: var(--neutral-100);
+  color: var(--color-text-on-dark);
   margin: 0;
 }
 .duo-detail-hero-text {

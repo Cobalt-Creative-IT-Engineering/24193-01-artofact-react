@@ -5,6 +5,7 @@ import { useDuosList } from "../../hooks/useWordPress";
 import logoDark from "../../assets/logo/artofact-dark.svg";
 import mobiliereLogo from "../../assets/images/partners/mobiliere.svg";
 import fpeLogo from "../../assets/images/partners/fpe.svg";
+import iconBurgerClose from "../../assets/icon/icon_burger_close.svg";
 import iconInstagram from "../../assets/icon/icon_instagram.svg";
 import iconLinkedin from "../../assets/icon/icon_linkedin.svg";
 import iconYoutube from "../../assets/icon/icon_youtube.svg";
@@ -42,8 +43,13 @@ export function NavOverlay({ onClose }: Props) {
           <img src={logoDark} alt="Artofact" />
         </a>
         <div className="nav-overlay-close">
-          <button type="button" className="nav-overlay-close-btn" onClick={onClose} aria-label="Fermer le menu">
-            <span className="nav-overlay-close-line" />
+          <button
+            type="button"
+            className="nav-toggle"
+            onClick={onClose}
+            aria-label="Fermer le menu"
+          >
+            <img src={iconBurgerClose} alt="" className="nav-toggle-icon" />
           </button>
         </div>
       </div>
