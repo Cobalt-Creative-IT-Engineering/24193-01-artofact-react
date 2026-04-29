@@ -338,12 +338,6 @@ a {
   margin: 0 auto;
   align-items: center;
 }
-@media (max-width: 768px) {
-  .nav-overlay-footer-inner {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
-}
 .nav-overlay-footer-address {
   font-weight: 700;
   font-size: 0.95rem;
@@ -353,6 +347,19 @@ a {
 }
 .nav-overlay-footer-social { justify-self: center; text-align: center; }
 .nav-overlay-footer-partners { justify-self: end; text-align: right; }
+@media (max-width: 768px) {
+  .nav-overlay-footer-inner {
+    grid-template-columns: auto auto;
+    grid-template-areas:
+      "address  social"
+      "partners partners";
+    gap: 1.5rem 2rem;
+    justify-content: space-between;
+  }
+  .nav-overlay-footer-address  { grid-area: address;  justify-self: start;  text-align: left; }
+  .nav-overlay-footer-social   { grid-area: social;   justify-self: end;    text-align: right; }
+  .nav-overlay-footer-partners { grid-area: partners; justify-self: center; text-align: center; }
+}
 .nav-overlay-footer-title {
   font-weight: 700;
   font-size: 0.95rem;
@@ -390,6 +397,21 @@ a {
   width: auto;
   object-fit: contain;
 }
+@media (max-width: 768px) {
+  .nav-overlay-footer-partners-row { justify-content: center; }
+
+  /* Stickers décoratifs masqués sur mobile (gain d'espace + débordements évités) */
+  .home-intro-sticker,
+  .home-duos-sticker,
+  .duos-hero-sticker,
+  .duo-detail-hero-sticker { display: none; }
+
+  /* Pages /concept et /duos : sur mobile on ne montre que le titre + les
+     éléments. L'intro (lorem) du hero est masquée. Les séparateurs des
+     cards (border-top sur les titres) restent gérés par leurs propres règles. */
+  .duos-hero-text,
+  .concept-hero-text { display: none; }
+}
 
 /* ─── Footer ───────────────────────────────────────────────────────────── */
 
@@ -413,7 +435,14 @@ a {
   .footer-inner {
     grid-template-columns: 1fr;
     gap: 2rem;
+    justify-items: center;
+    text-align: center;
   }
+  /* Mobile : on cache les réseaux sociaux (déjà dispos dans l'overlay nav)
+     pour ne garder que logo + partenaires, centrés. */
+  .footer-social { display: none; }
+  .footer-col-end { justify-self: center; text-align: center; }
+  .footer-partners-row { justify-content: center; }
 }
 
 .footer-address {
@@ -469,6 +498,9 @@ a {
 }
 .footer-partners-row > img{
   max-height: 10rem;
+}
+@media (max-width: 768px) {
+  .footer-partners-row { justify-content: center; }
 }
 .footer-partner-logo {
   max-height: 2rem;
