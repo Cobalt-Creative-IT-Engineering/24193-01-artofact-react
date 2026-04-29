@@ -1,10 +1,11 @@
 import { useEffect } from "react";
 import { useDuoBySlug } from "../hooks/useWordPress";
 import type { DuoNode, DuoArtiste, DuoEntreprise, AcfLink } from "../config/acf-schemas";
-import { Sticker } from "../components/ui";
+import { CTAButton, Sticker } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 import { setPageMeta } from "../lib/meta";
 import bannerImg from "../assets/images/banner.svg";
+import iconLink from "../assets/icon/icon_link.svg";
 
 // ─── Lorem ipsum placeholder ──────────────────────────────────────────────
 
@@ -45,13 +46,15 @@ function DuoDetailHero({ title, subtitle, text, imageUrl, imageAlt }: DuoDetailH
     <section className="duo-detail-hero" aria-label={title}>
       <Sticker name="04" className="duo-detail-hero-sticker" />
       <div className="duo-detail-hero-inner">
-        <div className="duo-detail-hero-content">
-          <h1 className="duo-detail-hero-title">{formatDuoTitle(title)}</h1>
-          {subtitle && <p className="duo-detail-hero-subtitle">{subtitle}</p>}
-          {text && <p className="duo-detail-hero-text">{text}</p>}
-        </div>
-        <div className="duo-detail-hero-image">
-          <img src={imageUrl ?? bannerImg} alt={imageAlt || title} />
+        <h1 className="duo-detail-hero-title">{formatDuoTitle(title)}</h1>
+        <div className="duo-detail-hero-row">
+          <div className="duo-detail-hero-content">
+            {subtitle && <p className="duo-detail-hero-subtitle">{subtitle}</p>}
+            {text && <p className="duo-detail-hero-text">{text}</p>}
+          </div>
+          <div className="duo-detail-hero-image">
+            <img src={imageUrl ?? bannerImg} alt={imageAlt || title} />
+          </div>
         </div>
       </div>
     </section>
@@ -81,11 +84,15 @@ function DuoMemberCard({ name, text, photoUrl, photoAlt, link }: DuoMemberCardPr
       {text && <p className="duo-member-card-text">{text}</p>}
       <div className="duo-member-card-cta-row">
         {cta ? (
-          <a href={cta.href} target={link?.target ?? "_blank"} rel="noopener noreferrer" className="duo-member-card-tag">
+          <a href={cta.href} target={link?.target ?? "_blank"} rel="noopener noreferrer" className="btn-cta">
+            <img src={iconLink} alt="" className="btn-cta-icon" />
             {cta.label}
           </a>
         ) : (
-          <span className="duo-member-card-tag">{name}</span>
+          <span className="btn-cta">
+            <img src={iconLink} alt="" className="btn-cta-icon" />
+            {name}
+          </span>
         )}
       </div>
     </article>
@@ -167,6 +174,10 @@ export function DuoDetailPage({ slug }: { slug: string }) {
           </div>
         </section>
       )}
+
+      <div className="duo-detail-more">
+        <CTAButton href="/duos">Les autres duos</CTAButton>
+      </div>
     </main>
   );
 }

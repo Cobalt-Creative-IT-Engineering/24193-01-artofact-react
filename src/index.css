@@ -129,7 +129,9 @@ a {
 /* ─── CTA button ──────────────────────────────────────────────────────── */
 
 .btn-cta {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   padding: 0.75rem 2rem;
   border-radius: var(--radius-pill);
   background: var(--color-accent);
@@ -140,6 +142,12 @@ a {
   cursor: pointer;
   border: none;
   transition: filter 0.15s ease;
+}
+.btn-cta-icon {
+  width: 1rem;
+  height: 1rem;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 .btn-cta:hover {
   filter: brightness(0.92);
@@ -623,9 +631,13 @@ a {
     padding: 0 2rem 0 0;
   }
 }
-.home-duos-more             { display: flex; justify-content: center; margin-top: 3rem; padding: 0 var(--content-px); }
-/* Le CTA « Les autres duos » garde le style par défaut (vert) malgré le contexte .home-duos */
-.home-duos-more .btn-cta    { background: var(--color-accent); color: var(--neutral-100); }
+.home-duos-more,
+.duos-more,
+.duo-detail-more            { display: flex; justify-content: center; margin-top: 3rem; padding: 0 var(--content-px) 4rem; }
+/* Le CTA « Les autres duos » garde le style par défaut (vert) malgré le contexte .home-duos / .duos-main / .duo-detail-main */
+.home-duos-more .btn-cta,
+.duos-more .btn-cta,
+.duo-detail-more .btn-cta   { background: var(--color-accent); color: var(--neutral-100); }
 .home-duos-title            { font-weight: 700; font-size: clamp(2.5rem, 6vw, 5rem);
                               color: var(--color-text-on-dark); letter-spacing: -0.03em; line-height: 1; }
 .duo-card                   { display: flex; flex-direction: column; position: relative; overflow: hidden; }
@@ -1117,15 +1129,20 @@ a {
   pointer-events: none;
 }
 .duo-detail-hero-inner {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
   max-width: var(--container);
   margin: 0 auto;
 }
+.duo-detail-hero-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
 @media (max-width: 900px) {
-  .duo-detail-hero-inner {
+  .duo-detail-hero-row {
     grid-template-columns: 1fr;
     gap: 2.5rem;
   }
@@ -1228,15 +1245,6 @@ a {
 .duo-member-card-cta-row {
   display: flex;
   margin-top: auto;
-}
-.duo-member-card-tag {
-  display: inline-block;
-  padding: 0.5rem 1.25rem;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  color: var(--color-text);
-  font-weight: 700;
-  font-size: 0.85rem;
 }
 
 /* ─── MemberCard ───────────────────────────────────────────────────────── */

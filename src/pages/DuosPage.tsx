@@ -1,7 +1,12 @@
+import { useState } from "react";
 import { useDuosList } from "../hooks/useWordPress";
 import type { DuoNode } from "../config/acf-schemas";
-import { ContentSection, Sticker } from "../components/ui";
+import { ContentSection, CTAButton, Sticker } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
+
+// Nombre initial de duos affichés (incrémenté au clic sur « Les autres duos »)
+const DUOS_INITIAL = 2;
+const DUOS_STEP    = 1;
 
 // ─── Lorem ipsum placeholder ──────────────────────────────────────────────
 
@@ -56,11 +61,16 @@ export function DuosPage() {
       ? []
       : FAKE_DUOS_LIST;
 
+  // Pagination : démarre à DUOS_INITIAL, +DUOS_STEP à chaque clic.
+  const [duosLimit, setDuosLimit] = useState(DUOS_INITIAL);
+  const duosToShow  = duos.slice(0, duosLimit);
+  const hasMoreDuos = duosLimit < duos.length;
+
   return (
     <main className="duos-main">
       <DuosHero title="Les duos" intro={LOREM} />
 
-      {duos.map((duo, i) => {
+      {duosToShow.map((duo, i) => {
         const fields = duo.duoFields ?? {};
         return (
           <ContentSection
@@ -77,6 +87,14 @@ export function DuosPage() {
           />
         );
       })}
+
+      {hasMoreDuos && (
+        <div className="duos-more">
+          <CTAButton onClick={() => setDuosLimit((n) => n + DUOS_STEP)}>
+            Les autres duos
+          </CTAButton>
+        </div>
+      )}
     </main>
   );
 }
