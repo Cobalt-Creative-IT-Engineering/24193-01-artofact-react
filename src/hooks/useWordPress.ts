@@ -294,6 +294,7 @@ const GQL_IMAGE_EDGE = `node { sourceUrl altText }`;
 import type {
   DuoNode,
   PartenaireNode,
+  ArtisteNode,
   HomeContent,
   HomeContentResponse,
   ConceptContent,
@@ -391,6 +392,29 @@ export function usePartenairesList() {
   return useFetch<PartenaireNode[]>(
     () => graphqlFetch<GqlPartenairesListResponse>(GQL_PARTENAIRES_LIST).then(r => r.partenaires?.nodes ?? []),
     { cacheKey: "gql:partenaires:list", staleMs: 120_000, persist: true }
+  );
+}
+
+// ─── GraphQL — Artistes (CPT + ACF) ──────────────────────────────────────
+
+const GQL_ARTISTES_LIST = `
+  query GetArtistesList {
+    artistes(first: 100) {
+      nodes {
+        slug
+        title
+        artistes { logo { ${GQL_IMAGE_EDGE} } lien presentation }
+      }
+    }
+  }
+`;
+
+type GqlArtistesListResponse = { artistes: { nodes: ArtisteNode[] } };
+
+export function useArtistesList() {
+  return useFetch<ArtisteNode[]>(
+    () => graphqlFetch<GqlArtistesListResponse>(GQL_ARTISTES_LIST).then(r => r.artistes?.nodes ?? []),
+    { cacheKey: "gql:artistes:list", staleMs: 120_000, persist: true }
   );
 }
 

@@ -388,13 +388,13 @@ a {
   .home-duos-sticker,
   .duos-hero-sticker,
   .partenaires-hero-sticker,
+  .artistes-hero-sticker,
   .duo-detail-hero-sticker { display: none; }
 
   /* Pages /concept et /duos : sur mobile on ne montre que le titre + les
      éléments. L'intro (lorem) du hero est masquée. Les séparateurs des
      cards (border-top sur les titres) restent gérés par leurs propres règles. */
   .duos-hero-text,
-  .partenaires-hero-text,
   .concept-hero-text { display: none; }
 }
 
@@ -1148,9 +1148,10 @@ a {
 
 /* ─── Partenaires page ─────────────────────────────────────────────────── */
 
-.partenaires-main { background: var(--color-bg-dark); padding-bottom: 6rem; flex: 1; overflow-x: clip; }
+/* Pages Partenaires & Artistes : même gabarit (hero + grille de cartes). */
+.partenaires-main, .artistes-main { background: var(--color-bg-dark); padding-bottom: 6rem; flex: 1; overflow-x: clip; }
 
-.partenaires-hero {
+.partenaires-hero, .artistes-hero {
   padding: var(--page-top-offset) var(--content-px) 5rem;
   position: relative;
 }
@@ -1166,7 +1167,18 @@ a {
   z-index: var(--z-decorations);
   pointer-events: none;
 }
-.partenaires-hero-inner {
+/* Sticker artistes « 01 » (carré 262×263) : dimensionné par la largeur. */
+.artistes-hero-sticker {
+  position: absolute;
+  right: 0;
+  top: var(--page-top-offset);
+  transform: translate(50%, 0);
+  width: clamp(12rem, 30vw, 22rem);
+  height: auto;
+  z-index: var(--z-decorations);
+  pointer-events: none;
+}
+.partenaires-hero-inner, .artistes-hero-inner {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -1175,7 +1187,7 @@ a {
   position: relative;
   z-index: 2;
 }
-.partenaires-hero-title {
+.partenaires-hero-title, .artistes-hero-title {
   font-family: var(--font-display);
   font-size: clamp(3rem, 8vw, 6rem);
   font-weight: 700;
@@ -1184,7 +1196,7 @@ a {
   color: var(--color-text-on-dark);
   margin: 0;
 }
-.partenaires-hero-subtitle {
+.partenaires-hero-subtitle, .artistes-hero-subtitle {
   font-family: var(--font-display);
   font-weight: 600;
   font-size: clamp(1.5rem, 3.5vw, 2.25rem);
@@ -1192,7 +1204,7 @@ a {
   max-width: 48rem;
   margin: 0;
 }
-.partenaires-hero-text {
+.partenaires-hero-text, .artistes-hero-text {
   font-size: 1rem;
   line-height: 1.7;
   color: var(--color-text-on-dark);
@@ -1200,12 +1212,12 @@ a {
   margin: 0;
 }
 
-.partenaires-group {
+.partenaires-group, .artistes-group {
   max-width: var(--container);
   width: calc(100% - 2 * var(--content-px));
   margin: 0 auto 4rem;
 }
-.partenaires-group-title {
+.partenaires-group-title, .artistes-group-title {
   font-family: var(--font-display);
   font-size: clamp(1.5rem, 3vw, 2.25rem);
   font-weight: 700;
@@ -1213,14 +1225,14 @@ a {
   color: var(--color-text-on-dark);
   margin: 0 0 2rem;
 }
-.partenaires-grid {
+.partenaires-grid, .artistes-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 1.5rem;
   align-items: stretch;
 }
-@media (min-width: 768px)  { .partenaires-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .partenaires-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px)  { .partenaires-grid, .artistes-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1024px) { .partenaires-grid, .artistes-grid { grid-template-columns: repeat(3, 1fr); } }
 
 /* ─── Modale (popup descriptif partenaire) ─────────────────────────────── */
 .modal-backdrop {
@@ -1512,4 +1524,5 @@ a {
 .duo-card-text,
 .member-card-text,
 .entity-modal-text,
+.artistes-hero-text,
 .not-found-text { font-size: 1.2rem; }

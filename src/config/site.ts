@@ -55,6 +55,7 @@ export const NAV_ITEMS: readonly NavItem[] = [
   { id: 2, title: "Organisation",       url: "/organisation",      cta: false },
   { id: 3, title: "Comptoir gruérien",  url: "https://comptoir-gruerien.ch/", cta: false },
   { id: 4, title: "Partenaires",        url: "/partenaires",       cta: false },
+  { id: 6, title: "Artistes",           url: "/artistes",          cta: false },
   { id: 5, title: "Les duos",           url: "/duos",              cta: true,
     children: [
       { id: 51, title: "Matthia Gremaud × Morand construction", url: "/duos/matthia-gremaud" },
