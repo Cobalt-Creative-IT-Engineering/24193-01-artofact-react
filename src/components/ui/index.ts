@@ -9,3 +9,6 @@ export { CTAButton }                   from "./CTAButton";
 export { Sticker }                     from "./Sticker";
 export { ContentSection }              from "./ContentSection";
 export { MemberCard }                  from "./MemberCard";
+export { EntityCard }                   from "./EntityCard";
+export type { EntityCardProps }         from "./EntityCard";
+export { Modal }                        from "./Modal";

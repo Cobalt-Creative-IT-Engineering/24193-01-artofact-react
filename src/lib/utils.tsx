@@ -17,3 +17,13 @@ export function formatDuoTitle(title: string): ReactNode {
       : [<br key={i * 2} />, "x", <br key={i * 2 + 1} />, p]
   );
 }
+
+/**
+ * Convertit du HTML WYSIWYG en texte brut (pour un extrait/aperçu).
+ * Décode les entités et supprime les balises via le parseur du navigateur,
+ * puis normalise les espaces. Utilisé pour l'extrait des cartes partenaires.
+ */
+export function htmlToText(html: string): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent || "").replace(/\s+/g, " ").trim();
+}

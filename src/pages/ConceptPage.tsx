@@ -62,6 +62,7 @@ function imageProps(image: PageSection["image"]): { url: string | null; alt: str
 
 export function ConceptPage() {
   const { data } = useConceptContent();
+  const introduction = data?.introduction || LOREM;
   const enTete     = data?.enTete;
   const zoneGrise  = data?.zoneGrise;
   const carte      = data?.carte;
@@ -69,8 +70,8 @@ export function ConceptPage() {
 
   return (
     <main className="concept-main">
-      {/* Hero hardcodé (titre + intro générique de la page) */}
-      <ConceptHero title="Concept" text={LOREM} />
+      {/* Hero : titre de page + introduction (ACF, fallback LOREM) */}
+      <ConceptHero title="Concept" text={introduction} />
 
       {/* En-tête (variant dark, image à droite) */}
       {(enTete?.titre || enTete?.texte) && (
@@ -81,7 +82,7 @@ export function ConceptPage() {
         />
       )}
 
-      {/* Section grise (variant light, image à gauche) — pleine largeur via CSS */}
+      {/* Section grise (variant light, image à gauche) — texte forcé aligné à gauche via CSS (cf. index.css) */}
       {(zoneGrise?.titre || zoneGrise?.texte) && (
         <ConceptListSection
           item={zoneGrise}

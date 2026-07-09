@@ -1,12 +1,24 @@
+import { useState } from "react";
 import { usePartenairesList } from "../hooks/useWordPress";
 import type { PartenaireNode } from "../config/acf-schemas";
-import { Sticker } from "../components/ui";
+import { Sticker, EntityCard, Modal, RichText } from "../components/ui";
 import mobiliereLogo from "../assets/images/partners/mobiliere.svg";
 import fpeLogo from "../assets/images/partners/fpe.svg";
 
-// ─── Lorem ipsum placeholder ──────────────────────────────────────────────
+// ─── Contenu statique de l'en-tête (pas d'ACF « page partenaires » côté WP) ─
 
-const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus.";
+const HERO_TITLE = "Les entreprises partenaires";
+const HERO_SUBTITLE = "Les entreprises sont au cœur d’ArtÔfact.";
+const HERO_TEXT = `
+<p>Issues du tissu économique fribourgeois, elles représentent la richesse, la diversité et l’innovation du territoire. En participant au projet, elles ouvrent les portes de leur univers à des artistes, partageant leurs métiers, leurs gestes et leurs savoir-faire.</p>
+<p>Leur engagement va bien au-delà d’un soutien :</p>
+<ul>
+<li>Elles accueillent les artistes en immersion,</li>
+<li>Participent activement à la création,</li>
+<li>Mettent à disposition ressources, matériaux et compétences,</li>
+<li>Et deviennent co-auteurs d’une œuvre unique.</li>
+</ul>
+`;
 
 // ─── Fake data (affiché si WP retourne 0 partenaire) ─────────────────────
 
@@ -33,13 +45,14 @@ const FAKE_PARTENAIRES: PartenaireNode[] = [
 
 // ─── Hero (composant local) ───────────────────────────────────────────────
 
-function PartenairesHero({ title, intro }: { title: string; intro: string }) {
+function PartenairesHero() {
   return (
     <section className="partenaires-hero" aria-label="Les partenaires">
       <Sticker name="02" className="partenaires-hero-sticker" />
       <div className="partenaires-hero-inner">
-        <h1 className="partenaires-hero-title">{title}</h1>
-        <p className="partenaires-hero-text">{intro}</p>
+        <h1 className="partenaires-hero-title">{HERO_TITLE}</h1>
+        <p className="partenaires-hero-subtitle">{HERO_SUBTITLE}</p>
+        <RichText html={HERO_TEXT} className="partenaires-hero-text" />
       </div>
     </section>
   );
@@ -68,40 +81,11 @@ function groupByCategory(partenaires: PartenaireNode[]): PartenaireGroup[] {
   return groups;
 }
 
-// ─── Logo (lien externe si `lien` fourni, sinon simple image) ────────────
-
-function PartenaireLogo({ item }: { item: PartenaireNode }) {
-  const logo = item.partenaires?.logo?.node;
-  if (!logo?.sourceUrl) return null;
-
-  const img = (
-    <img
-      src={logo.sourceUrl}
-      alt={logo.altText || item.title}
-      className="partenaire-logo-img"
-    />
-  );
-
-  const lien = item.partenaires?.lien;
-  if (!lien) return <div className="partenaire-logo">{img}</div>;
-
-  return (
-    <a
-      href={lien}
-      className="partenaire-logo"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label={item.title}
-    >
-      {img}
-    </a>
-  );
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────
 
 export function PartenairesPage() {
   const { data, status } = usePartenairesList();
+  const [selected, setSelected] = useState<PartenaireNode | null>(null);
 
   // WP vide/indisponible → fake ; loading sans donnée → rien (pas de flash).
   const partenaires: PartenaireNode[] =
@@ -113,20 +97,55 @@ export function PartenairesPage() {
 
   const groups = groupByCategory(partenaires);
 
+  const selPresentation = selected?.partenaires?.presentation ?? "";
+  const selLogo = selected?.partenaires?.logo?.node;
+  const selLien = selected?.partenaires?.lien;
+
   return (
     <main className="partenaires-main">
-      <PartenairesHero title="Partenaires" intro={LOREM} />
+      <PartenairesHero />
 
       {groups.map((group) => (
         <section key={group.category} className="partenaires-group" aria-label={group.category}>
           <h2 className="partenaires-group-title">{group.category}</h2>
           <div className="partenaires-grid">
-            {group.items.map((item) => (
-              <PartenaireLogo key={item.slug} item={item} />
-            ))}
+            {group.items.map((item) => {
+              const f = item.partenaires;
+              const hasText = !!f?.presentation?.trim();
+              return (
+                <EntityCard
+                  key={item.slug}
+                  name={item.title}
+                  text={f?.presentation ?? undefined}
+                  photoUrl={f?.logo?.node.sourceUrl ?? null}
+                  photoAlt={f?.logo?.node.altText ?? item.title}
+                  linkUrl={f?.lien ?? undefined}
+                  small
+                  // Popup + extrait uniquement s'il y a du contenu texte.
+                  onOpenDetail={hasText ? () => setSelected(item) : undefined}
+                />
+              );
+            })}
           </div>
         </section>
       ))}
+
+      {selected && (
+        <Modal onClose={() => setSelected(null)} labelledBy="partenaire-modal-title">
+          <h3 id="partenaire-modal-title" className="partenaire-modal-title">{selected.title}</h3>
+          {selLogo?.sourceUrl && (
+            <div className="partenaire-modal-logo">
+              <img src={selLogo.sourceUrl} alt={selLogo.altText || selected.title} />
+            </div>
+          )}
+          <RichText html={selPresentation} className="partenaire-modal-text" />
+          {selLien && (
+            <a href={selLien} target="_blank" rel="noopener noreferrer" className="btn-cta partenaire-modal-cta">
+              Visiter le site
+            </a>
+          )}
+        </Modal>
+      )}
     </main>
   );
 }

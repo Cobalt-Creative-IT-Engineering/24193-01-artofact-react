@@ -35,6 +35,11 @@ export function NavOverlay({ onClose }: Props) {
   // sans URL sont rendues désactivées en attendant le lien réel.
   const socials = Object.entries(SOCIAL_LINKS) as [keyof typeof SOCIAL_LINKS, string][];
 
+  // Liens externes (http…) : ouverture dans un nouvel onglet + rel sécurisé.
+  // Le routeur SPA (App.tsx) laisse déjà passer les http vers le navigateur.
+  const externalLinkProps = (url: string) =>
+    url.startsWith("http") ? { target: "_blank", rel: "noopener noreferrer" } : {};
+
   const overlay = (
     <div className="nav-overlay" role="dialog" aria-modal="true" aria-label="Navigation">
       <div className="nav-overlay-header">
@@ -57,7 +62,7 @@ export function NavOverlay({ onClose }: Props) {
       <nav className="nav-overlay-body" aria-label="Navigation principale">
         <div className="nav-overlay-col">
           {primaryItems.map(item => (
-            <a key={item.id} href={item.url} className="nav-overlay-link" onClick={onClose}>
+            <a key={item.id} href={item.url} className="nav-overlay-link" onClick={onClose} {...externalLinkProps(item.url)}>
               {item.title}
             </a>
           ))}
@@ -67,7 +72,7 @@ export function NavOverlay({ onClose }: Props) {
             const children = dynamicChildrenForItem(item.url) ?? item.children;
             return (
               <div key={item.id}>
-                <a href={item.url} className="nav-overlay-link" onClick={onClose}>
+                <a href={item.url} className="nav-overlay-link" onClick={onClose} {...externalLinkProps(item.url)}>
                   {item.title}
                 </a>
                 {children && children.length > 0 && (

@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useDuoBySlug } from "../hooks/useWordPress";
 import type { DuoNode, ArtisteNode, PartenaireNode } from "../config/acf-schemas";
-import { CTAButton, Sticker, RichText } from "../components/ui";
+import { CTAButton, Sticker, RichText, EntityCard } from "../components/ui";
+import type { EntityCardProps } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 import { setPageMeta } from "../lib/meta";
 import bannerImg from "../assets/images/banner.svg";
-import iconLink from "../assets/icon/icon_link.svg";
 
 // ─── Lorem ipsum placeholder ──────────────────────────────────────────────
 
@@ -59,44 +59,9 @@ function DuoDetailHero({ title, subtitle, text, imageUrl, imageAlt }: DuoDetailH
   );
 }
 
-// ─── Card Artiste / Entreprise ────────────────────────────────────────────
-
-type DuoMemberCardProps = {
-  name: string;
-  text: string;
-  photoUrl: string | null;
-  photoAlt: string;
-  linkUrl?: string | null;
-};
-
-function DuoMemberCard({ name, text, photoUrl, photoAlt, linkUrl }: DuoMemberCardProps) {
-  return (
-    <article className="duo-member-card">
-      <h3 className="duo-member-card-name">{name}</h3>
-      <div className="duo-member-card-photo">
-        <img src={photoUrl ?? bannerImg} alt={photoAlt} />
-      </div>
-      {text && <RichText html={text} className="duo-member-card-text" />}
-      <div className="duo-member-card-cta-row">
-        {linkUrl ? (
-          <a href={linkUrl} target="_blank" rel="noopener noreferrer" className="btn-cta">
-            <img src={iconLink} alt="" className="btn-cta-icon" />
-            {name}
-          </a>
-        ) : (
-          <span className="btn-cta">
-            <img src={iconLink} alt="" className="btn-cta-icon" />
-            {name}
-          </span>
-        )}
-      </div>
-    </article>
-  );
-}
-
 // ─── Helpers d'extraction (relations Artiste / Partenaire) ───────────────
 
-function artisteCardProps(rel: { nodes: ArtisteNode[] } | null | undefined): DuoMemberCardProps | null {
+function artisteCardProps(rel: { nodes: ArtisteNode[] } | null | undefined): EntityCardProps | null {
   const node = rel?.nodes?.[0];
   const name = node?.title?.trim();
   if (!name) return null;
@@ -110,7 +75,7 @@ function artisteCardProps(rel: { nodes: ArtisteNode[] } | null | undefined): Duo
   };
 }
 
-function entrepriseCardProps(rel: { nodes: PartenaireNode[] } | null | undefined): DuoMemberCardProps | null {
+function entrepriseCardProps(rel: { nodes: PartenaireNode[] } | null | undefined): EntityCardProps | null {
   const node = rel?.nodes?.[0];
   const name = node?.title?.trim();
   if (!name) return null;
@@ -167,8 +132,8 @@ export function DuoDetailPage({ slug }: { slug: string }) {
         <section className="duo-detail-members" aria-label="Membres du duo">
           <div className="duo-detail-members-inner">
             <div className="duo-detail-members-grid">
-              {artisteProps    && <DuoMemberCard {...artisteProps} />}
-              {entrepriseProps && <DuoMemberCard {...entrepriseProps} />}
+              {artisteProps    && <EntityCard {...artisteProps} />}
+              {entrepriseProps && <EntityCard {...entrepriseProps} />}
             </div>
           </div>
         </section>

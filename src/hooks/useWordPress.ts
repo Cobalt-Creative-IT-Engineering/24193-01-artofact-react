@@ -430,6 +430,7 @@ const GQL_CONCEPT_CONTENT = `
   query GetConceptContent {
     pageConceptContent {
       pageConcept {
+        introduction
         enTete     { ${GQL_CONCEPT_SECTION} }
         zoneGrise  { ${GQL_CONCEPT_SECTION} }
         carte      { titre texte lien { ${GQL_LINK_FRAGMENT} } }

@@ -84,10 +84,11 @@ export type HomeContentResponse = {
 // ─── Page concept — pageConceptContent.pageConcept ───────────────────────
 
 export type ConceptContent = {
-  enTete?:     PageSection | null;
-  zoneGrise?:  PageSection | null;
-  carte?:      PageSectionTextOnly | null;
-  piedDePage?: PageSection | null;
+  introduction?: string | null; // texte sous le titre de la page
+  enTete?:       PageSection | null;
+  zoneGrise?:    PageSection | null;
+  carte?:        PageSectionTextOnly | null;
+  piedDePage?:   PageSection | null;
 };
 
 export type ConceptContentResponse = {
