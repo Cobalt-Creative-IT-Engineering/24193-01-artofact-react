@@ -73,6 +73,10 @@
      Appliqué sur les heros des pages internes (pas la home qui a un hero plein écran). */
   --page-top-offset: 9rem;
 
+  /* Espace vertical uniforme entre les sections de la page d'accueil.
+     Modèle « chaque section fournit son gap en haut » (padding-top only). */
+  --home-section-gap: 5rem;
+
   --z-nav:          50;
   --z-decorations:  10;
   --z-overlay:      100;
@@ -104,7 +108,7 @@ html.theme-base {
 /* ─── Base layout ──────────────────────────────────────────────────────── */
 
 html, body {
-  background: var(--color-bg);
+  background: var(--neutral-100); /* fond de base blanc pur */
   color: var(--color-text);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
@@ -382,12 +386,14 @@ a {
   .home-intro-sticker,
   .home-duos-sticker,
   .duos-hero-sticker,
+  .partenaires-hero-sticker,
   .duo-detail-hero-sticker { display: none; }
 
   /* Pages /concept et /duos : sur mobile on ne montre que le titre + les
      éléments. L'intro (lorem) du hero est masquée. Les séparateurs des
      cards (border-top sur les titres) restent gérés par leurs propres règles. */
   .duos-hero-text,
+  .partenaires-hero-text,
   .concept-hero-text { display: none; }
 }
 
@@ -396,7 +402,7 @@ a {
 .footer {
   margin-top: auto;
   border-top: 1px solid var(--border);
-  background: var(--neutral-100);
+  background: var(--neutral-300);
   padding: 2.5rem var(--content-px);
 }
 .footer-inner {
@@ -561,7 +567,7 @@ a {
 }
 
 /* ─── Home : section intro ─────────────────────────────────────────────── */
-.home-intro                 { padding: 5rem var(--content-px); position: relative; overflow: hidden; }
+.home-intro                 { padding: var(--home-section-gap) var(--content-px) 0; position: relative; overflow: hidden; }
 .home-intro-sticker         { position: absolute; right: 0; top: 50%;
                               transform: translate(50%, -50%);
                               width: clamp(15rem, 38vw, 28rem); height: auto;
@@ -570,10 +576,13 @@ a {
                               margin: 0 auto; position: relative; z-index: 2; }
 .home-intro-title           { font-weight: 700; line-height: 1; letter-spacing: -0.03em;
                               font-size: clamp(2.5rem, 6vw, 5rem); color: var(--color-text-on-dark); margin: 0; }
-.home-intro-text            { font-size: 1rem; line-height: 1.7; color: var(--color-text-on-dark); max-width: 36rem; }
+.home-intro-subtitle        { font-family: var(--font-display); font-weight: 600; margin: 0;
+                              font-size: clamp(1.5rem, 3.5vw, 2.25rem); color: var(--color-text-on-dark);
+                              max-width: 60rem; }
+.home-intro-text            { font-size: 1rem; line-height: 1.7; color: var(--color-text-on-dark); max-width: 52rem; }
 
 /* ─── Home : section duos ──────────────────────────────────────────────── */
-.home-duos                  { position: relative; }
+.home-duos                  { position: relative; padding-top: var(--home-section-gap); }
 /* Espacement vertical entre les cards (home duos + page /duos + page /concept) */
 .home-duos > .content-section + .content-section,
 .duos-main > .content-section + .content-section,
@@ -581,7 +590,7 @@ a {
 .home-duos-sticker          { position: absolute; left: 0; top: 6rem; width: 8rem; height: auto;
                               z-index: var(--z-decorations); }
 .home-duos-header           { max-width: var(--container); margin: 0 auto;
-                              padding: 4rem 0 2rem var(--content-px); text-align: right; position: relative; }
+                              padding: 0 0 2rem var(--content-px); text-align: right; position: relative; }
 @media (min-width: 768px) {
   .home-duos .content-section-image,
   .duos-main .content-section-image,
@@ -679,7 +688,7 @@ a {
                               width: 4rem; height: 4rem; z-index: 5; }
 
 /* ─── Home : section comptoir ──────────────────────────────────────────── */
-.home-comptoir              { padding: 5rem var(--content-px); }
+.home-comptoir              { padding: var(--home-section-gap) var(--content-px); }
 .home-comptoir-inner        { max-width: var(--container); margin: 0 auto; text-align: right; }
 .home-comptoir-title        { font-weight: 700; margin-top: 0; margin-bottom: 0.75rem;
                               padding-top: 1.25rem;
@@ -915,6 +924,19 @@ a {
   font-size: 0.9em;
 }
 
+/* ─── RichText (HTML WYSIWYG WP, couleur héritée du conteneur) ─────────── */
+/* Pas de `color` ici : le texte hérite de la couleur du variant (clair/sombre). */
+.rich-text > :first-child { margin-top: 0; }
+.rich-text > :last-child  { margin-bottom: 0; }
+.rich-text p  { margin: 0 0 1em; }
+.rich-text ul, .rich-text ol { padding-left: 1.4em; margin: 0 0 1em; }
+.rich-text ul { list-style: disc; }
+.rich-text ol { list-style: decimal; }
+.rich-text li { margin: 0.25em 0; }
+.rich-text a  { text-decoration: underline; text-underline-offset: 3px; }
+.rich-text strong { font-weight: 700; }
+.rich-text em { font-style: italic; }
+
 /* ─── Utility: screen-reader only ──────────────────────────────────────── */
 .sr-only {
   position: absolute;
@@ -1119,6 +1141,87 @@ a {
   margin: 0;
 }
 
+/* ─── Partenaires page ─────────────────────────────────────────────────── */
+
+.partenaires-main { background: var(--color-bg-dark); padding-bottom: 6rem; flex: 1; overflow-x: clip; }
+
+.partenaires-hero {
+  padding: var(--page-top-offset) var(--content-px) 5rem;
+  position: relative;
+}
+.partenaires-hero-sticker {
+  position: absolute;
+  right: 0;
+  top: var(--page-top-offset);
+  transform: translate(50%, 0);
+  width: clamp(15rem, 38vw, 28rem);
+  height: auto;
+  z-index: var(--z-decorations);
+  pointer-events: none;
+}
+.partenaires-hero-inner {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: var(--container);
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+.partenaires-hero-title {
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 6rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--color-text-on-dark);
+  margin: 0;
+}
+.partenaires-hero-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--color-text-on-dark);
+  max-width: 48rem;
+  margin: 0;
+}
+
+.partenaires-group {
+  max-width: var(--container);
+  width: calc(100% - 2 * var(--content-px));
+  margin: 0 auto 4rem;
+}
+.partenaires-group-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3vw, 2.25rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--color-text-on-dark);
+  margin: 0 0 2rem;
+}
+.partenaires-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 2rem;
+  align-items: center;
+}
+.partenaire-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  min-height: 8rem;
+}
+a.partenaire-logo { transition: opacity 0.2s ease; }
+a.partenaire-logo:hover { opacity: 0.7; }
+.partenaire-logo-img {
+  max-height: 4rem;
+  max-width: 100%;
+  width: auto;
+  object-fit: contain;
+}
+
 /* ─── Duo detail page ──────────────────────────────────────────────────── */
 
 .duo-detail-main {
@@ -1296,3 +1399,21 @@ a {
   margin: 0;
 }
 .member-card-cta { margin-top: 0.5rem; }
+
+/* ─── Taille de corps de texte uniforme (site-wide) ────────────────────────
+   Un seul point de contrôle pour tous les paragraphes / textes courants.
+   Placé en fin de feuille pour l'emporter sur les font-size définies plus haut
+   (même spécificité → l'ordre source gagne). Ne touche pas titres / sous-titres
+   / liens de nav. Modifier cette valeur = changer toute la home et les pages. */
+.home-intro-text,
+.home-comptoir-text,
+.concept-hero-text,
+.concept-card-text,
+.duos-hero-text,
+.partenaires-hero-text,
+.duo-detail-hero-text,
+.duo-member-card-text,
+.content-section-text,
+.duo-card-text,
+.member-card-text,
+.not-found-text { font-size: 1.2rem; }

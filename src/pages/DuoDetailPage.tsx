@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDuoBySlug } from "../hooks/useWordPress";
-import type { DuoNode, DuoArtiste, DuoEntreprise, AcfLink } from "../config/acf-schemas";
-import { CTAButton, Sticker } from "../components/ui";
+import type { DuoNode, ArtisteNode, PartenaireNode } from "../config/acf-schemas";
+import { CTAButton, Sticker, RichText } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 import { setPageMeta } from "../lib/meta";
 import bannerImg from "../assets/images/banner.svg";
@@ -21,12 +21,10 @@ const FAKE_DUO_DETAIL: DuoNode = {
     sousTitre: "Un duo gravé dans le métal",
     texte:     LOREM,
     artiste: {
-      nom: "Matthia Gremaud",
-      descriptionArtiste: LOREM,
+      nodes: [{ slug: "matthia-gremaud", title: "Matthia Gremaud", artistes: { presentation: LOREM } }],
     },
     entreprise: {
-      nom: "Morand construction",
-      descriptionEntreprise: LOREM,
+      nodes: [{ slug: "morand-construction", title: "Morand construction", partenaires: { presentation: LOREM } }],
     },
   },
 };
@@ -50,7 +48,7 @@ function DuoDetailHero({ title, subtitle, text, imageUrl, imageAlt }: DuoDetailH
         <div className="duo-detail-hero-row">
           <div className="duo-detail-hero-content">
             {subtitle && <p className="duo-detail-hero-subtitle">{subtitle}</p>}
-            {text && <p className="duo-detail-hero-text">{text}</p>}
+            {text && <RichText html={text} className="duo-detail-hero-text" />}
           </div>
           <div className="duo-detail-hero-image">
             <img src={imageUrl ?? bannerImg} alt={imageAlt || title} />
@@ -68,25 +66,22 @@ type DuoMemberCardProps = {
   text: string;
   photoUrl: string | null;
   photoAlt: string;
-  link?: AcfLink | null;
+  linkUrl?: string | null;
 };
 
-function DuoMemberCard({ name, text, photoUrl, photoAlt, link }: DuoMemberCardProps) {
-  const cta = link?.url
-    ? { href: link.url, label: link.title || name }
-    : null;
+function DuoMemberCard({ name, text, photoUrl, photoAlt, linkUrl }: DuoMemberCardProps) {
   return (
     <article className="duo-member-card">
       <h3 className="duo-member-card-name">{name}</h3>
       <div className="duo-member-card-photo">
         <img src={photoUrl ?? bannerImg} alt={photoAlt} />
       </div>
-      {text && <p className="duo-member-card-text">{text}</p>}
+      {text && <RichText html={text} className="duo-member-card-text" />}
       <div className="duo-member-card-cta-row">
-        {cta ? (
-          <a href={cta.href} target={link?.target ?? "_blank"} rel="noopener noreferrer" className="btn-cta">
+        {linkUrl ? (
+          <a href={linkUrl} target="_blank" rel="noopener noreferrer" className="btn-cta">
             <img src={iconLink} alt="" className="btn-cta-icon" />
-            {cta.label}
+            {name}
           </a>
         ) : (
           <span className="btn-cta">
@@ -99,29 +94,33 @@ function DuoMemberCard({ name, text, photoUrl, photoAlt, link }: DuoMemberCardPr
   );
 }
 
-// ─── Helpers d'extraction ────────────────────────────────────────────────
+// ─── Helpers d'extraction (relations Artiste / Partenaire) ───────────────
 
-function artisteCardProps(artiste: DuoArtiste | null | undefined): DuoMemberCardProps | null {
-  const name = artiste?.nom?.trim();
+function artisteCardProps(rel: { nodes: ArtisteNode[] } | null | undefined): DuoMemberCardProps | null {
+  const node = rel?.nodes?.[0];
+  const name = node?.title?.trim();
   if (!name) return null;
+  const f = node?.artistes;
   return {
     name,
-    text:     artiste?.descriptionArtiste ?? "",
-    photoUrl: artiste?.imageArtiste?.node.sourceUrl ?? null,
-    photoAlt: artiste?.imageArtiste?.node.altText ?? name,
-    link:     artiste?.lienArtiste ?? null,
+    text:     f?.presentation ?? "",
+    photoUrl: f?.logo?.node.sourceUrl ?? null,
+    photoAlt: f?.logo?.node.altText ?? name,
+    linkUrl:  f?.lien ?? null,
   };
 }
 
-function entrepriseCardProps(entreprise: DuoEntreprise | null | undefined): DuoMemberCardProps | null {
-  const name = entreprise?.nom?.trim();
+function entrepriseCardProps(rel: { nodes: PartenaireNode[] } | null | undefined): DuoMemberCardProps | null {
+  const node = rel?.nodes?.[0];
+  const name = node?.title?.trim();
   if (!name) return null;
+  const f = node?.partenaires;
   return {
     name,
-    text:     entreprise?.descriptionEntreprise ?? "",
-    photoUrl: entreprise?.imageEntreprise?.node.sourceUrl ?? null,
-    photoAlt: entreprise?.imageEntreprise?.node.altText ?? name,
-    link:     entreprise?.lienEntreprise ?? null,
+    text:     f?.presentation ?? "",
+    photoUrl: f?.logo?.node.sourceUrl ?? null,
+    photoAlt: f?.logo?.node.altText ?? name,
+    linkUrl:  f?.lien ?? null,
   };
 }
 

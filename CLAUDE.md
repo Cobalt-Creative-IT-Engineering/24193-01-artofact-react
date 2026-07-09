@@ -39,15 +39,15 @@ Helpers : `text`, `image` (gère objet ACF, string URL, ou ID d'attachment réso
 
 Routeur home-made basé sur l'History API — **pas de react-router**. Un handler global de `click` dans `App.tsx` intercepte tous les `<a href="/...">` internes et appelle `navigate()` qui `pushState` + dispatche un `popstate`. Les liens externes, `mailto:`, `tel:`, `target=_blank`, `download`, et ancres `#` sont laissés au navigateur.
 
-Table de routage dans `PageView` (App.tsx:107). Ajouter une page = ajouter un `if` ici + le label dans `PAGE_LABELS` pour le `<title>`. `/page/:slug` est un fallback pour afficher n'importe quelle page WP par slug via `WPPageView`.
+Table de routage dans `PageView` (App.tsx:98) : `/` → HomePage, `/concept` → ConceptPage, `/duos` → DuosPage, `/duos/:slug` → DuoDetailPage, sinon NotFoundPage. Ajouter une page = ajouter un `if` ici + le label dans `PAGE_LABELS` (App.tsx:40) pour le `<title>`. Attention : `NAV_ITEMS` référence des routes (`/organisation`, `/comptoir-gruerien`, `/partenaires`) qui ne sont pas encore branchées dans `PageView` et tombent donc sur NotFoundPage.
 
-Migration legacy automatique : les URLs en `#/xxx` sont réécrites en `/xxx` au chargement.
+Migration legacy automatique : les URLs en `#/xxx` sont réécrites en `/xxx` au chargement (useRoute.ts:24).
 
-Le dev server a `historyApiFallback: true` dans [vite.config.ts](vite.config.ts) — nécessaire pour que le refresh sur `/articles/foo` renvoie `index.html` au lieu d'un 404. À conserver si on touche au proxy.
+Le dev server a `historyApiFallback: true` dans [vite.config.ts](vite.config.ts) — nécessaire pour que le refresh sur `/duos/foo` renvoie `index.html` au lieu d'un 404. À conserver si on touche au proxy.
 
 ### Thèmes annuels ([src/themes/](src/themes/))
 
-`ACTIVE_THEME` est typé comme littéral (`ThemeName = "base"`) pour que Rollup tree-shake les thèmes inactifs. Ajouter un thème `"2027"` = étendre le type, ajouter l'entrée dans `THEMES`, créer `src/themes/2027/Decorations.tsx`, dispatcher dans `src/themes/Decorations.tsx`, ajouter le bloc CSS `html.theme-2027 { ... }` dans `src/index.css`. Le thème est appliqué au boot en ajoutant la classe sur `<html>` (App.tsx:20-28).
+`ACTIVE_THEME` est typé comme littéral (`ThemeName = "base"`) pour que Rollup tree-shake les thèmes inactifs. Ajouter un thème `"2027"` = étendre le type, ajouter l'entrée dans `THEMES`, créer `src/themes/2027/Decorations.tsx`, dispatcher dans `src/themes/Decorations.tsx`, ajouter le bloc CSS `html.theme-2027 { ... }` dans `src/index.css`. Le thème est appliqué au boot en ajoutant la classe sur `<html>` (App.tsx:16-23) ; si le thème définit `fontsUrl`, un `<link>` est injecté (le thème `base` charge Work Sans localement via `@font-face` dans `index.css`, donc `fontsUrl` est null).
 
 ### Coming Soon
 
@@ -55,11 +55,20 @@ Deux leviers dans [src/config/site.ts](src/config/site.ts) :
 - `FORCE_COMING_SOON = true` → toujours affiché
 - `VITE_COMING_SOON_UNTIL=YYYY-MM-DDTHH:mm` (env, fuseau local) → affiché tant que la date n'est pas atteinte
 
-`shouldShowComingSoon()` court-circuite tout le rendu dans App.tsx:95.
+`shouldShowComingSoon()` court-circuite tout le rendu dans App.tsx:86.
 
 ### Meta tags ([src/lib/meta.ts](src/lib/meta.ts))
 
-Module stateful. `initMeta()` est appelé une fois au boot avec les infos de `/wp-json/` root. `setPageMeta({ title })` est appelé à chaque changement de route ; les pages de détail qui ont un titre/image propres (ArticleDetailPage) écrasent avec leurs propres infos. Pas de react-helmet — manipulation DOM directe sur les balises meta.
+Module stateful. `initMeta()` est appelé une fois au boot avec les infos de `/wp-json/` root. `setPageMeta({ title })` est appelé à chaque changement de route ; les pages de détail qui ont un titre/image propres (ex. DuoDetailPage) écrasent avec leurs propres infos. Pas de react-helmet — manipulation DOM directe sur les balises meta.
+
+### Design system ([doc/design_system.md](doc/design_system.md))
+
+`doc/design_system.md` est la **source de vérité** (couleurs, typo, breakpoints, exportés de Figma). Une évolution du DS doit être répercutée dans les trois endroits : ce doc → variables CSS `:root` dans [src/index.css](src/index.css) → [tailwind.config.js](tailwind.config.js) si Tailwind doit y accéder.
+
+Gotchas Tailwind (config fortement customisée, pas les valeurs par défaut) :
+- **Breakpoints non-standard** : `sm=400px`, `md=768px`, `lg=1440px` (et pas de `xl`/`2xl`). `sm:` ne veut pas dire 640px ici.
+- **Palette** : 4 familles `neutral` / `primary` (turquoise) / `secondary` (vert) / `tertiary` (beige), chacune en tons `100`→`900` (100 = clair, 900 = foncé). Pas de gris Tailwind par défaut — utiliser `neutral-*`. Fond principal du site : `neutral-900`.
+- Utilitaires custom : `max-w-container` (1264px), `rounded-pill`.
 
 ### Configuration centralisée
 

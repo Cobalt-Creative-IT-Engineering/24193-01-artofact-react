@@ -3,6 +3,7 @@ export { ErrorBanner }                 from "./ErrorBanner";
 export { PostCard }                    from "./PostCard";
 export { Pagination }                  from "./Pagination";
 export { WPContent }                   from "./WPContent";
+export { RichText }                     from "./RichText";
 export { LogoPlaceholder }             from "./LogoPlaceholder";
 export { CTAButton }                   from "./CTAButton";
 export { Sticker }                     from "./Sticker";

@@ -6,6 +6,7 @@ import { ComingSoonPage }      from "./pages/ComingSoonPage";
 import { ConceptPage }         from "./pages/ConceptPage";
 import { DuosPage }            from "./pages/DuosPage";
 import { DuoDetailPage }       from "./pages/DuoDetailPage";
+import { PartenairesPage }     from "./pages/PartenairesPage";
 import { NotFoundPage }        from "./pages/NotFoundPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
 import { THEMES }              from "./themes/index";
@@ -38,8 +39,9 @@ document.addEventListener("click", (e) => {
 });
 
 const PAGE_LABELS: Record<string, string> = {
-  "/concept": "Le concept",
-  "/duos":    "Les duos",
+  "/concept":     "Le concept",
+  "/duos":        "Les duos",
+  "/partenaires": "Les partenaires",
 };
 
 function getPageLabel(route: string): string | undefined {
@@ -100,5 +102,6 @@ function PageView({ route }: { route: string }) {
   if (route === "/concept")           return <ConceptPage />;
   if (route === "/duos")              return <DuosPage />;
   if (route.startsWith("/duos/"))     return <DuoDetailPage slug={route.replace("/duos/", "")} />;
+  if (route === "/partenaires")       return <PartenairesPage />;
   return <NotFoundPage />;
 }

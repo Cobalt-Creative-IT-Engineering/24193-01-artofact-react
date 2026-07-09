@@ -5,7 +5,12 @@
  *   - Options Page « Page d'accueil »  → query `pageAccueilContent.pageDAccueil`
  *   - Options Page « Page concept »    → query `pageConceptContent.pageConcept`
  *   - CPT « Duo » groupe « Duos »       → query `duo.duoFields`
+ *   - CPT « Artiste » groupe « Artistes »       → query `artiste.artistes`
  *   - CPT « Partenaire » groupe « Partenaires » → query `partenaire.partenaires`
+ *
+ * Le CPT Duo relie un Artiste et un Partenaire via des champs « relationship »
+ * (`duoFields.artiste.nodes` / `duoFields.entreprise.nodes`), et non plus des
+ * sous-groupes inline.
  *
  * Les anciens schémas REST (`HomeACF`, `ConceptACF`, `DuosListingACF` ACF v3)
  * sont supprimés — toutes les nouvelles options pages ne sont accessibles
@@ -51,6 +56,13 @@ export type PageSectionTextOnly = {
 
 // ─── Page d'accueil — pageAccueilContent.pageDAccueil ────────────────────
 
+export type HomeEnTete = {
+  titre?:     string | null;
+  sousTitre?: string | null;
+  texte?:     string | null;
+  lien?:      AcfLink | null;
+};
+
 export type HomePiedDePage = {
   titre?:     string | null;
   sousTitre?: string | null;
@@ -59,7 +71,7 @@ export type HomePiedDePage = {
 };
 
 export type HomeContent = {
-  enTete?:     PageSectionTextOnly | null;
+  enTete?:     HomeEnTete | null;
   piedDePage?: HomePiedDePage | null;
 };
 
@@ -84,56 +96,57 @@ export type ConceptContentResponse = {
   } | null;
 };
 
+// ─── CPT « Partenaire » — partenaires ────────────────────────────────────
+
+export type PartenaireFields = {
+  logo?:                  AcfMediaEdge | null;
+  lien?:                  string | null;
+  presentation?:          string | null; // HTML WYSIWYG
+  categorieDuPartenaire?: string | null;  // champ texte ACF (ex. "Partenaires")
+};
+
+export type PartenaireNode = {
+  slug:         string;
+  title:        string;
+  partenaires?: PartenaireFields | null;
+};
+
+// ─── CPT « Artiste » — artistes ──────────────────────────────────────────
+// Même forme que Partenaire (logo / lien / présentation + catégorie).
+
+export type ArtisteFields = {
+  logo?:         AcfMediaEdge | null;
+  lien?:         string | null;
+  presentation?: string | null; // HTML WYSIWYG
+};
+
+export type ArtisteNode = {
+  slug:      string;
+  title:     string;
+  artistes?: ArtisteFields | null;
+};
+
 // ─── CPT « Duo » — duoFields ─────────────────────────────────────────────
 //
-// Structure : titre / sousTitre / texte / image au top-level, plus deux
-// sous-groupes `artiste` et `entreprise` avec chacun leur nom, description,
-// image et lien (les sous-champs portent un suffixe `Artiste` / `Entreprise`
-// car ACF distingue les noms de sous-champs).
-
-export type DuoArtiste = {
-  nom?:                string | null;
-  descriptionArtiste?: string | null;
-  imageArtiste?:       AcfMediaEdge | null;
-  lienArtiste?:        AcfLink | null;
-};
-
-export type DuoEntreprise = {
-  nom?:                   string | null;
-  descriptionEntreprise?: string | null;
-  imageEntreprise?:       AcfMediaEdge | null;
-  lienEntreprise?:        AcfLink | null;
-};
+// Structure : titre / sousTitre / texte / image au top-level. `artiste` et
+// `entreprise` sont désormais des RELATIONS (champs ACF « relationship ») vers
+// respectivement le CPT Artiste et le CPT Partenaire — plus des sous-groupes
+// inline. Chaque relation expose `nodes` (0 ou 1 élément en pratique).
 
 export type DuoFields = {
   titre?:      string | null;
   sousTitre?:  string | null;
   texte?:      string | null;
   image?:      AcfMediaEdge | null;
-  artiste?:    DuoArtiste | null;
-  entreprise?: DuoEntreprise | null;
+  lien?:       AcfLink | null;
+  artiste?:    { nodes: ArtisteNode[] } | null;
+  entreprise?: { nodes: PartenaireNode[] } | null;
 };
 
 export type DuoNode = {
   slug:       string;
   title:      string;
   duoFields?: DuoFields | null;
-};
-
-// ─── CPT « Partenaire » — partenaires ────────────────────────────────────
-
-export type PartenaireFields = {
-  logo?:                 AcfMediaEdge | null;
-  lien?:                 string | null;
-  categorieDuPartenaire?: {
-    nodes: { id: string; name: string; slug: string }[];
-  } | null;
-};
-
-export type PartenaireNode = {
-  slug:        string;
-  title:       string;
-  partenaires?: PartenaireFields | null;
 };
 
 // ─── Variants ContentSection (utilisés par <ContentSection>) ─────────────

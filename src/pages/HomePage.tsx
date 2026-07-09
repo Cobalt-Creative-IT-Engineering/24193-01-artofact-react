@@ -1,6 +1,6 @@
 import { useHomeContent, useDuosList } from "../hooks/useWordPress";
 import type { DuoNode, AcfLink } from "../config/acf-schemas";
-import { CTAButton, ContentSection, Sticker } from "../components/ui";
+import { CTAButton, ContentSection, Sticker, RichText } from "../components/ui";
 import bannerImg from "../assets/images/banner.svg";
 import { formatDuoTitle } from "../lib/utils";
 
@@ -59,9 +59,10 @@ export function HomePage() {
   const enTete     = home?.enTete;
   const piedDePage = home?.piedDePage;
 
-  const introTitle = enTete?.titre || "Mêler art\net industrie";
-  const introText  = enTete?.texte || (status !== "loading" ? LOREM_INTRO : "");
-  const introCta   = linkProps(enTete?.lien);
+  const introTitle    = enTete?.titre || "Mêler art\net industrie";
+  const introSubtitle = enTete?.sousTitre ?? "";
+  const introText     = enTete?.texte || (status !== "loading" ? LOREM_INTRO : "");
+  const introCta      = linkProps(enTete?.lien);
 
   const piedTitle    = piedDePage?.titre || "Comptoir gruérien";
   const piedSubtitle = piedDePage?.sousTitre ?? "";
@@ -93,7 +94,8 @@ export function HomePage() {
 
         <div className="home-intro-inner">
           <h2 className="home-intro-title">{introTitle}</h2>
-          <p className="home-intro-text">{introText}</p>
+          {introSubtitle && <p className="home-intro-subtitle">{introSubtitle}</p>}
+          <RichText html={introText} className="home-intro-text" />
           {introCta && (
             <div>
               <CTAButton href={introCta.href}>{introCta.label}</CTAButton>

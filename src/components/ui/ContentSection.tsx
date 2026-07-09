@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import bannerImg from "../../assets/images/banner.svg";
 import { CTAButton } from "./CTAButton";
+import { RichText } from "./RichText";
 import type { ContentVariant } from "../../config/acf-schemas";
 
 type ContentSectionProps = {
@@ -49,7 +50,7 @@ export function ContentSection({
 
       <div className={`content-section-content ${contentAlignClass}`}>
         <h2 className="content-section-title">{titleNode ?? title}</h2>
-        <p className="content-section-text">{text}</p>
+        <RichText html={text} className="content-section-text" />
 
         {ctaLabel && ctaUrl && (
           <div className="content-section-cta-row">

@@ -293,6 +293,7 @@ const GQL_IMAGE_EDGE = `node { sourceUrl altText }`;
 
 import type {
   DuoNode,
+  PartenaireNode,
   HomeContent,
   HomeContentResponse,
   ConceptContent,
@@ -307,17 +308,24 @@ const GQL_DUO_FIELDS_FRAGMENT = `
     sousTitre
     texte
     image { ${GQL_IMAGE_EDGE} }
+    lien { ${GQL_LINK_FRAGMENT} }
     artiste {
-      nom
-      descriptionArtiste
-      imageArtiste { ${GQL_IMAGE_EDGE} }
-      lienArtiste { ${GQL_LINK_FRAGMENT} }
+      nodes {
+        ... on Artiste {
+          slug
+          title
+          artistes { logo { ${GQL_IMAGE_EDGE} } lien presentation }
+        }
+      }
     }
     entreprise {
-      nom
-      descriptionEntreprise
-      imageEntreprise { ${GQL_IMAGE_EDGE} }
-      lienEntreprise { ${GQL_LINK_FRAGMENT} }
+      nodes {
+        ... on Partenaire {
+          slug
+          title
+          partenaires { logo { ${GQL_IMAGE_EDGE} } lien presentation }
+        }
+      }
     }
   }
 `;
@@ -356,13 +364,43 @@ export function useDuoBySlug(slug: string) {
   );
 }
 
+// ─── GraphQL — Partenaires (CPT + ACF) ───────────────────────────────────
+
+const GQL_PARTENAIRE_FIELDS_FRAGMENT = `
+  slug
+  title
+  partenaires {
+    logo { ${GQL_IMAGE_EDGE} }
+    lien
+    presentation
+    categorieDuPartenaire
+  }
+`;
+
+const GQL_PARTENAIRES_LIST = `
+  query GetPartenairesList {
+    partenaires(first: 100) {
+      nodes { ${GQL_PARTENAIRE_FIELDS_FRAGMENT} }
+    }
+  }
+`;
+
+type GqlPartenairesListResponse = { partenaires: { nodes: PartenaireNode[] } };
+
+export function usePartenairesList() {
+  return useFetch<PartenaireNode[]>(
+    () => graphqlFetch<GqlPartenairesListResponse>(GQL_PARTENAIRES_LIST).then(r => r.partenaires?.nodes ?? []),
+    { cacheKey: "gql:partenaires:list", staleMs: 120_000, persist: true }
+  );
+}
+
 // ─── GraphQL — Page d'accueil (Options Page) ─────────────────────────────
 
 const GQL_HOME_CONTENT = `
   query GetHomeContent {
     pageAccueilContent {
       pageDAccueil {
-        enTete     { titre texte lien { ${GQL_LINK_FRAGMENT} } }
+        enTete     { titre sousTitre texte lien { ${GQL_LINK_FRAGMENT} } }
         piedDePage { titre sousTitre texte lien { ${GQL_LINK_FRAGMENT} } }
       }
     }
