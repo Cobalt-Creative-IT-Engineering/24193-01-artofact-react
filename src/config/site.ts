@@ -52,7 +52,6 @@ export type NavItem = {
 // cta: false → lien standard (dans le menu full-screen)
 export const NAV_ITEMS: readonly NavItem[] = [
   { id: 1, title: "Concept",            url: "/concept",           cta: false },
-  { id: 2, title: "Organisation",       url: "/organisation",      cta: false },
   { id: 3, title: "Comptoir gruérien",  url: "https://comptoir-gruerien.ch/", cta: false },
   { id: 4, title: "Partenaires",        url: "/partenaires",       cta: false },
   { id: 6, title: "Artistes",           url: "/artistes",          cta: false },

@@ -391,11 +391,9 @@ a {
   .artistes-hero-sticker,
   .duo-detail-hero-sticker { display: none; }
 
-  /* Pages /concept et /duos : sur mobile on ne montre que le titre + les
-     éléments. L'intro (lorem) du hero est masquée. Les séparateurs des
-     cards (border-top sur les titres) restent gérés par leurs propres règles. */
-  .duos-hero-text,
-  .concept-hero-text { display: none; }
+  /* Page /duos : l'intro du hero est un placeholder (lorem) → masquée sur
+     mobile. (Le concept a un vrai texte ACF → on ne le masque plus.) */
+  .duos-hero-text { display: none; }
 }
 
 /* ─── Footer ───────────────────────────────────────────────────────────── */
@@ -592,6 +590,11 @@ a {
                               z-index: var(--z-decorations); }
 .home-duos-header           { max-width: var(--container); margin: 0 auto;
                               padding: 0 0 2rem var(--content-px); text-align: right; position: relative; }
+/* Mobile : le shorthand ci-dessus met padding-right à 0 → le titre « Les duos »
+   (aligné à droite) collait au bord. Override placé APRÈS pour l'emporter. */
+@media (max-width: 767px) {
+  .home-duos-header { padding-right: var(--content-px); }
+}
 @media (min-width: 768px) {
   .home-duos .content-section-image,
   .duos-main .content-section-image,
@@ -1032,6 +1035,11 @@ a {
 @media (min-width: 768px) {
   .content-section-content { padding: 0 1rem 0 0; }
 }
+/* Mobile (colonne) : sans padding, image et texte étaient collés et le texte
+   au ras du bord de la carte → on ajoute un espace vertical + latéral. */
+@media (max-width: 767px) {
+  .content-section-content { padding: 1.5rem 1.25rem; }
+}
 
 .content-section-content--right { text-align: right; }
 .content-section-content--left  { text-align: left; }
@@ -1201,14 +1209,14 @@ a {
   font-weight: 600;
   font-size: clamp(1.5rem, 3.5vw, 2.25rem);
   color: var(--color-text-on-dark);
-  max-width: 48rem;
+  max-width: 64rem;
   margin: 0;
 }
 .partenaires-hero-text, .artistes-hero-text {
   font-size: 1rem;
   line-height: 1.7;
   color: var(--color-text-on-dark);
-  max-width: 52rem;
+  max-width: 72rem;
   margin: 0;
 }
 
