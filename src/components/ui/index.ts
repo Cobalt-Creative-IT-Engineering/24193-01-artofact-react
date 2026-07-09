@@ -12,3 +12,4 @@ export { MemberCard }                  from "./MemberCard";
 export { EntityCard }                   from "./EntityCard";
 export type { EntityCardProps }         from "./EntityCard";
 export { Modal }                        from "./Modal";
+export { EntityDetailModal }            from "./EntityDetailModal";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { usePartenairesList } from "../hooks/useWordPress";
 import type { PartenaireNode } from "../config/acf-schemas";
-import { Sticker, EntityCard, Modal, RichText } from "../components/ui";
+import { Sticker, EntityCard, EntityDetailModal, RichText } from "../components/ui";
 import mobiliereLogo from "../assets/images/partners/mobiliere.svg";
 import fpeLogo from "../assets/images/partners/fpe.svg";
 
@@ -131,20 +131,14 @@ export function PartenairesPage() {
       ))}
 
       {selected && (
-        <Modal onClose={() => setSelected(null)} labelledBy="partenaire-modal-title">
-          <h3 id="partenaire-modal-title" className="partenaire-modal-title">{selected.title}</h3>
-          {selLogo?.sourceUrl && (
-            <div className="partenaire-modal-logo">
-              <img src={selLogo.sourceUrl} alt={selLogo.altText || selected.title} />
-            </div>
-          )}
-          <RichText html={selPresentation} className="partenaire-modal-text" />
-          {selLien && (
-            <a href={selLien} target="_blank" rel="noopener noreferrer" className="btn-cta partenaire-modal-cta">
-              Visiter le site
-            </a>
-          )}
-        </Modal>
+        <EntityDetailModal
+          name={selected.title}
+          text={selPresentation}
+          photoUrl={selLogo?.sourceUrl}
+          photoAlt={selLogo?.altText ?? selected.title}
+          linkUrl={selLien}
+          onClose={() => setSelected(null)}
+        />
       )}
     </main>
   );

@@ -1,7 +1,7 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useDuoBySlug } from "../hooks/useWordPress";
 import type { DuoNode, ArtisteNode, PartenaireNode } from "../config/acf-schemas";
-import { CTAButton, Sticker, RichText, EntityCard } from "../components/ui";
+import { CTAButton, Sticker, RichText, EntityCard, EntityDetailModal } from "../components/ui";
 import type { EntityCardProps } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 import { setPageMeta } from "../lib/meta";
@@ -111,6 +111,8 @@ export function DuoDetailPage({ slug }: { slug: string }) {
   const artisteProps    = artisteCardProps(fields.artiste);
   const entrepriseProps = entrepriseCardProps(fields.entreprise);
 
+  const [selected, setSelected] = useState<EntityCardProps | null>(null);
+
   useEffect(() => {
     if (!titleRendered) return;
     setPageMeta({ title: titleRendered });
@@ -132,8 +134,20 @@ export function DuoDetailPage({ slug }: { slug: string }) {
         <section className="duo-detail-members" aria-label="Membres du duo">
           <div className="duo-detail-members-inner">
             <div className="duo-detail-members-grid">
-              {artisteProps    && <EntityCard {...artisteProps} />}
-              {entrepriseProps && <EntityCard {...entrepriseProps} />}
+              {artisteProps && (
+                <EntityCard
+                  {...artisteProps}
+                  small
+                  onOpenDetail={artisteProps.text ? () => setSelected(artisteProps) : undefined}
+                />
+              )}
+              {entrepriseProps && (
+                <EntityCard
+                  {...entrepriseProps}
+                  small
+                  onOpenDetail={entrepriseProps.text ? () => setSelected(entrepriseProps) : undefined}
+                />
+              )}
             </div>
           </div>
         </section>
@@ -142,6 +156,17 @@ export function DuoDetailPage({ slug }: { slug: string }) {
       <div className="duo-detail-more">
         <CTAButton href="/duos">Les autres duos</CTAButton>
       </div>
+
+      {selected && (
+        <EntityDetailModal
+          name={selected.name}
+          text={selected.text}
+          photoUrl={selected.photoUrl}
+          photoAlt={selected.photoAlt}
+          linkUrl={selected.linkUrl}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </main>
   );
 }
