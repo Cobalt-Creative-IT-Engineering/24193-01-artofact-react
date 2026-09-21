@@ -59,7 +59,12 @@ L'arborescence du projet est organisée comme suit :
 ├── README.md                   <- Ce fichier
 ├── CLAUDE.md                   <- Guide pour l'assistant Claude Code
 ├── doc/                        <- Documentation projet (blueprint, specs, …)
+├── .github/
+│   └── workflows/
+│       └── ci.yml              <- CI GitHub Actions (typecheck, build, artefact dist)
 ├── public/                     <- Assets statiques servis tels quels (favicon, OG images, …)
+│   ├── _redirects              <- Fallback SPA pour Netlify
+│   └── .htaccess               <- Fallback SPA + cache pour un hébergement Apache
 └── src/
     ├── main.tsx                <- Point d'entrée Vite
     ├── App.tsx                 <- Shell de l'app + table de routage
@@ -182,6 +187,34 @@ npx tsc --noEmit
 ```
 
 Aucun linter ni formateur n'est préconfiguré.
+
+## Intégration continue et déploiement
+
+### CI (GitHub Actions)
+
+Le workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) se déclenche sur chaque push et chaque Pull Request vers `main`, ainsi qu'à la demande (`workflow_dispatch`). Il enchaîne :
+
+1. `npm ci` sur Node 22 (cache npm activé)
+2. Contrôle de la présence de `VITE_WP_URL` — sans elle, le build tomberait sur l'URL WordPress de démo et produirait un site sans contenu
+3. `npm run build` (typecheck `tsc` puis `vite build`)
+4. Contrôle du fallback SPA dans `dist/` (`_redirects` et `.htaccess`)
+5. Publication de `dist/` en artefact téléchargeable (`dist.zip`, conservé 30 jours)
+
+Les variables `VITE_*` sont **inlinées dans le bundle au moment du build** : elles doivent donc être définies sur le runner, pas sur le serveur de destination. À renseigner dans **Settings → Secrets and variables → Actions → Variables** :
+
+| Variable                 | Requise | Rôle                                                     |
+| ------------------------ | ------- | -------------------------------------------------------- |
+| `VITE_WP_URL`            | oui     | URL du WordPress source, sans slash final                  |
+| `VITE_COMING_SOON_UNTIL` | non     | Affiche la page d'attente tant que la date n'est pas passée |
+
+Le déclenchement manuel accepte un paramètre `wp_url` pour builder ponctuellement contre un WordPress de staging sans modifier la variable du repo.
+
+### Déploiement
+
+Le site est statique : il suffit de servir le contenu de `dist/`. Deux cibles sont prévues, et le routeur maison (History API) impose dans les deux cas une règle de réécriture vers `index.html`, sans quoi un rafraîchissement sur une URL profonde (`/duos/mon-duo`) renvoie un 404.
+
+- **Netlify** — build automatique via [netlify.toml](netlify.toml) ; la réécriture vient de `public/_redirects`.
+- **Hébergement Apache** — déployer le contenu de l'artefact `dist.zip` dans le web root ; la réécriture et les en-têtes de cache viennent de `public/.htaccess` (`mod_rewrite` et `mod_headers` doivent être actifs). Attention, `.htaccess` est un fichier caché : vérifiez qu'il survit à votre outil de transfert.
 
 ## Contribuer
 

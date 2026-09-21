@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  # Permet de builder un dist.zip à la demande, éventuellement contre un autre WP
+  # (staging) sans toucher à la variable du repo.
+  workflow_dispatch:
+    inputs:
+      wp_url:
+        description: "URL WordPress (sans slash final) — défaut : variable de repo VITE_WP_URL"
+        required: false
+        type: string
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Typecheck · Build · dist.zip
+    runs-on: ubuntu-latest
+    env:
+      # Les variables VITE_* sont INLINÉES dans le bundle au moment du build : elles
+      # doivent être présentes ici, pas sur le serveur de destination. Ce n'est pas un
+      # secret (l'URL finit en clair dans le JS), d'où une variable de repo et non un secret.
+      VITE_WP_URL: ${{ inputs.wp_url || vars.VITE_WP_URL }}
+      # Optionnelle : si vide, src/config/site.ts considère simplement qu'aucune date
+      # de bascule n'est posée (FORCE_COMING_SOON reste le seul levier).
+      VITE_COMING_SOON_UNTIL: ${{ vars.VITE_COMING_SOON_UNTIL }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Sans cette garde, src/lib/wordpress.ts retombe sur son placeholder
+      # "https://votre-wordpress.com" et produit un build qui se déploie sans erreur
+      # mais ne charge aucun contenu. Mieux vaut rougir ici.
+      - name: Vérifier VITE_WP_URL
+        run: |
+          if [ -z "$VITE_WP_URL" ]; then
+            echo "::error::VITE_WP_URL est vide. Définissez-la dans Settings → Secrets and variables → Actions → Variables."
+            exit 1
+          fi
+          echo "Build contre $VITE_WP_URL"
+
+      # `npm run build` = tsc (typecheck, avec noUnusedLocals/noUnusedParameters) puis
+      # vite build → dist/. Pas de lint ni de tests dans ce projet : le typecheck est
+      # le seul filet, d'où son rôle central ici.
+      - name: Build
+        run: npm run build
+
+      # Le routeur maison (History API, pas de react-router) sert /duos/:slug côté
+      # client : sans règle de fallback, un refresh sur une URL profonde renvoie un 404
+      # de l'hébergeur. En dev c'est `historyApiFallback` de Vite ; en prod les deux
+      # règles vivent dans public/ et sont copiées telles quelles dans dist/ par vite
+      # build — _redirects pour Netlify, .htaccess pour un hébergement Apache.
+      - name: Vérifier le fallback SPA
+        run: |
+          test -f dist/index.html || { echo "::error::dist/index.html manquant"; exit 1; }
+          missing=0
+          for f in _redirects .htaccess; do
+            if [ ! -f "dist/$f" ]; then
+              echo "::error::dist/$f manquant — les deep links (/duos/:slug) tomberont en 404 sur cet hébergeur."
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ] || exit 1
+          echo "Fallbacks SPA présents : _redirects (Netlify) + .htaccess (Apache)"
+
+      # On n'zippe PAS à la main : upload-artifact compresse déjà, et uploader un .zip
+      # donnerait un zip dans un zip. Avec `name: dist` + `path: dist`, le bouton
+      # "Download" de l'onglet Actions renvoie un dist.zip dont la RACINE contient
+      # directement index.html et assets/ — décompressable tel quel dans un web root.
+      # Netlify fait son propre build (netlify.toml) : cet artefact sert au contrôle
+      # visuel et à un déploiement manuel de secours.
+      - name: Publier dist.zip
+        uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          # public/.htaccess est un fichier CACHÉ, et upload-artifact les exclut par
+          # défaut (include-hidden-files: false). Sans cette ligne, le zip téléchargé
+          # arrive sans .htaccess et les deep links tombent en 404 sur Apache.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

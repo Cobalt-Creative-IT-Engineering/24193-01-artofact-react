@@ -1154,6 +1154,22 @@ a {
   margin: 0;
 }
 
+/* Entre 768px et 1440px, le sticker « 03 » venait couvrir le titre du premier duo :
+   l'asset fait 429×583 (plus haut que large), donc à 38vw sa HAUTEUR dépasse
+   largement celle du hero, qui elle ne bouge presque plus quand l'écran rétrécit.
+   On le dimensionne donc sur une pente plus faible (18vw) dans cette plage : il
+   reste dans le hero jusqu'à 1440px, où la règle desktop (38vw / max 28rem)
+   reprend la main. En dessous de 768px il est masqué (cf. media query plus haut). */
+@media (max-width: 1439px) {
+  .duos-hero-sticker { width: clamp(8rem, 18vw, 18rem); }
+}
+
+/* Sous ~1024px, la colonne de texte occupe toute la largeur utile et vient buter
+   sur la moitié visible du sticker → on la raccourcit pour laisser le couloir libre. */
+@media (max-width: 1024px) {
+  .duos-hero-text { max-width: 34rem; }
+}
+
 /* ─── Partenaires page ─────────────────────────────────────────────────── */
 
 /* Pages Partenaires & Artistes : même gabarit (hero + grille de cartes). */

@@ -43,7 +43,7 @@ Table de routage dans `PageView` (App.tsx:98) : `/` → HomePage, `/concept` →
 
 Migration legacy automatique : les URLs en `#/xxx` sont réécrites en `/xxx` au chargement (useRoute.ts:24).
 
-Le dev server a `historyApiFallback: true` dans [vite.config.ts](vite.config.ts) — nécessaire pour que le refresh sur `/duos/foo` renvoie `index.html` au lieu d'un 404. À conserver si on touche au proxy.
+Le dev server a `historyApiFallback: true` dans [vite.config.ts](vite.config.ts) — nécessaire pour que le refresh sur `/duos/foo` renvoie `index.html` au lieu d'un 404. À conserver si on touche au proxy. En prod, le même fallback vient de `public/_redirects` (Netlify) et `public/.htaccess` (Apache), copiés dans `dist/` par vite build — le CI vérifie leur présence.
 
 ### Thèmes annuels ([src/themes/](src/themes/))
 
