@@ -1,4 +1,4 @@
-import bannerImg from "../../assets/images/banner.svg";
+import bannerImg from "../../assets/images/banner.webp";
 import iconLink from "../../assets/icon/icon_link.svg";
 import { RichText } from "./RichText";
 import { htmlToText } from "../../lib/utils";

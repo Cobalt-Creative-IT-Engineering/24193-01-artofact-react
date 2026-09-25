@@ -2,9 +2,9 @@ import { useConceptContent } from "../hooks/useWordPress";
 import type { AcfLink, PageSection, PageSectionTextOnly } from "../config/acf-schemas";
 import { ContentSection, CTAButton } from "../components/ui";
 
-// ─── Lorem ipsum (placeholders pré-prod tant que WP n'a pas de contenu) ───
+// ─── Texte d'exemple (affiché tant que le champ ACF « introduction » est vide) ───
 
-const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.";
+const SAMPLE_INTRO = "Au cœur du projet, une rencontre : celle entre un artiste suisse et une entreprise locale du sud fribourgeois. Ensemble, ils co-créent une œuvre originale, née d'une immersion dans le savoir-faire, les matériaux et l'identité de l'entreprise.";
 
 // ─── Hero (composant local non exporté) ───────────────────────────────────
 
@@ -62,7 +62,7 @@ function imageProps(image: PageSection["image"]): { url: string | null; alt: str
 
 export function ConceptPage() {
   const { data } = useConceptContent();
-  const introduction = data?.introduction || LOREM;
+  const introduction = data?.introduction || SAMPLE_INTRO;
   const enTete     = data?.enTete;
   const zoneGrise  = data?.zoneGrise;
   const carte      = data?.carte;
@@ -70,7 +70,7 @@ export function ConceptPage() {
 
   return (
     <main className="concept-main">
-      {/* Hero : titre de page + introduction (ACF, fallback LOREM) */}
+      {/* Hero : titre de page + introduction (ACF, fallback SAMPLE_INTRO) */}
       <ConceptHero title="Concept" text={introduction} />
 
       {/* En-tête (variant dark, image à droite) */}

@@ -43,7 +43,7 @@ Table de routage dans `resolvePage` (App.tsx) : `/` → HomePage, `/concept` →
 
 `resolvePage` est **la** source de vérité des routes valides : `App()` s'en sert aussi comme garde SEO (`noindex` quand elle retourne `null`, cf. section Meta tags). Une route ajoutée ailleurs que dans cette fonction serait donc servie mais marquée non indexable.
 
-Ajouter une page = trois endroits : un `if` dans `resolvePage`, le label dans `PAGE_LABELS` (App.tsx:42) pour le `<title>`, et une entrée dans [public/sitemap.xml](public/sitemap.xml), qui est un fichier statique tenu à la main. Toutes les routes internes de `NAV_ITEMS` sont branchées (« Comptoir gruérien » pointe vers un site externe).
+Ajouter une page = quatre endroits : un `if` dans `resolvePage`, le label dans `PAGE_LABELS` (App.tsx:42) pour le `<title>`, une entrée dans [public/sitemap.xml](public/sitemap.xml), qui est un fichier statique tenu à la main, et — si la page attend des données WP — sa classe `*-main` dans la règle anti-CLS `min-height: 100vh` de `index.css` (sous `.app`). Sans elle, le footer remonte dans l'écran pendant le chargement puis saute à l'arrivée du contenu (CLS mesuré jusqu'à 0,41 sur mobile). Toutes les routes internes de `NAV_ITEMS` sont branchées (« Comptoir gruérien » pointe vers un site externe).
 
 Migration legacy automatique : les URLs en `#/xxx` sont réécrites en `/xxx` au chargement (useRoute.ts:24).
 
@@ -55,10 +55,13 @@ Le CI (push/PR sur `main` + `workflow_dispatch`) fait `npm ci`, vérifie que `VI
 
 Cible de déploiement : Apache/Infomaniak, **WordPress et le build React dans le même web root** (`index.html` à côté de `index.php`, `wp-admin/`, `wp-content/`). Dans ce montage `VITE_WP_URL` est l'URL publique du site lui-même, donc tout est same-origin. Apache est la seule cible : le `_redirects` de Netlify a été supprimé.
 
+Domaines : l'hébergement répond sur **`artofact.cblt.ch`** (domaine principal, et valeur de `VITE_WP_URL`). `admin.artofact.ch` a été abandonné. Le domaine définitif `artofact.ch` n'est pas encore rattaché ; à la bascule, reprendre : réglages d'URL WordPress, variable de dépôt `VITE_WP_URL`, URL absolues de `sitemap.xml` / `robots.txt`, et décommenter la redirection canonique du `.htaccess`.
+
 Conséquences pour [public/.htaccess](public/.htaccess) :
 
 - Il part dans `dist/` et **remplace celui du serveur à chaque déploiement** : il doit rester un sur-ensemble de la config de prod (sécurité, routes maison `/login` et `/documents`, bloc `# BEGIN WordPress`). Ne rien y retirer sans vérifier ce qui tourne sur le serveur — Wordfence peut aussi y écrire.
 - Les exclusions du fallback SPA (`wp-admin|wp-content|wp-includes|wp-json|wp-login\.php|xmlrpc\.php|graphql`) sont **load-bearing** : sans elles, `/wp-json` renvoie `index.html` et le front reçoit du HTML au lieu de JSON, sans erreur réseau. Toute nouvelle route virtuelle WP doit être ajoutée à cette liste.
+- Bloc « Un seul domaine indexable » : `X-Robots-Tag: noindex, nofollow` sur tout hôte autre que `artofact.ch` / `www.artofact.ch`, donc aujourd'hui sur tout le site. Il est écrit `<If "%{HTTP_HOST} …">` + `Header set`. **Ne pas revenir** à `SetEnvIf` + `Header always set … env=!` : cette variante, valide sur un Apache standard, n'émettait aucun en-tête chez Infomaniak (constaté en prod).
 - Le mode maintenance est un fichier drapeau `.maintenance` posé à la racine du site (hors zip, donc il survit aux déploiements) : 503 + `.infomaniak-maintenance.html`, back-office et API exclus de la coupure.
 
 Un fichier ajouté dans `public/` part tel quel en production — y compris les fichiers cachés. Ce n'est pas un dossier de brouillons.
@@ -92,6 +95,8 @@ Gotchas Tailwind (config fortement customisée, pas les valeurs par défaut) :
 - **Palette** : 4 familles `neutral` / `primary` (turquoise) / `secondary` (vert) / `tertiary` (beige), chacune en tons `100`→`900` (100 = clair, 900 = foncé). Pas de gris Tailwind par défaut — utiliser `neutral-*`. Fond principal du site : `neutral-900`.
 - Utilitaires custom : `max-w-container` (1264px), `rounded-pill`.
 
+Stickers ([Sticker.tsx](src/components/ui/Sticker.tsx), SVG décoratifs en `position: absolute` décalés de 50 % hors du bord) : leur taille suit le viewport **sans plancher** (`min(Nvw, Xrem)`, jamais `clamp(<min>, …)`), et ceux des heros sont en plus bornés par la hauteur du hero via `--sticker-hero-bound` pour ne jamais déborder sur la section suivante. Quand un texte occupe toute la largeur du container, un `padding-right` réserve un couloir à la moitié visible du sticker (bloc « Couloir réservé aux stickers » avant le footer dans `index.css`). Masqués sous 768px.
+
 ### Configuration centralisée
 
 - [src/config/site.ts](src/config/site.ts) : `SITE_CONFIG`, `NAV_ITEMS` (avec flag `cta` pour le dernier item en bouton), `SOCIAL_LINKS`, `ACTIVE_THEME`, flags Coming Soon.
@@ -103,6 +108,8 @@ Gotchas Tailwind (config fortement customisée, pas les valeurs par défaut) :
 - Nouveau champ ACF → mettre à jour `acf-schemas.ts` **avant** d'écrire le composant.
 - Nouvelle variable d'env → ajouter la ligne dans `.env.example` et committer.
 - Nouvelle page WP-backed → utiliser `usePage(slug)` / `useACFOptionsPage(slug)` ; ne pas appeler `fetch` direct dans un composant.
+- Pas de lorem ipsum dans le code. Les contenus de secours (champ ACF vide, ou WP qui ne répond pas → faux duos / partenaires) sont des textes d'exemple crédibles nommés `SAMPLE_*`, qui n'affirment rien de précis sur des personnes ou entreprises réelles.
+- Images dans `src/assets/` : raster en WebP. Pas d'export Figma en SVG qui embarque une image bitmap — `banner.svg` pesait 1,8 Mo pour une image de 65 kB en WebP et faisait monter le LCP mobile à ~10 s.
 
 ## Blueprint source
 

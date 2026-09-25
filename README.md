@@ -217,6 +217,8 @@ Le site est statique : il suffit de servir le contenu de `dist/`. Le routeur mai
 
 **Cible unique : hébergement Apache / Infomaniak.** Déployer le contenu de l'artefact `dist.zip` dans le web root ; la réécriture, le cache, la compression et la bascule de maintenance viennent de [public/.htaccess](public/.htaccess). Le vhost doit avoir `AllowOverride All` et `mod_rewrite` actif, sans quoi Apache ignore le fichier **sans aucun message d'erreur**. Attention aussi : `.htaccess` et `.infomaniak-maintenance.html` sont des fichiers cachés, vérifiez qu'ils survivent à votre outil de transfert.
 
+**Domaines (état au 25.09.2026)** : l'hébergement répond sur `artofact.cblt.ch`, domaine principal — c'est la valeur de `VITE_WP_URL`, en local comme dans la variable de dépôt. `admin.artofact.ch` a été abandonné. Le domaine définitif `artofact.ch` sera rattaché plus tard ; ce jour-là, mettre à jour les adresses dans Réglages › Général de WordPress, la variable de dépôt `VITE_WP_URL` (puis rebuild : elle est figée dans le bundle), les URL absolues de `sitemap.xml` et `robots.txt`, et décommenter la redirection canonique du `.htaccess`. Avant de supprimer un domaine chez Infomaniak, vérifier que le certificat SSL couvre bien ceux qui restent.
+
 Netlify n'est plus une cible : `public/_redirects` a été supprimé, donc un déploiement Netlify servirait la home mais renverrait 404 sur toute URL profonde. `netlify.toml` n'a pas été supprimé mais ne sert plus à rien — le restaurer demanderait de remettre la règle de réécriture.
 
 ### Cohabitation avec WordPress dans le même web root
@@ -232,6 +234,7 @@ Ce que contient le fichier, dans l'ordre où Apache l'applique :
 
 | Bloc | Rôle |
 | ---- | ---- |
+| Domaine indexable | `X-Robots-Tag: noindex, nofollow` sur tout hôte autre que `artofact.ch` / `www.artofact.ch` — donc sur tout le site tant que le domaine définitif n'est pas rattaché. Juste après, une redirection 301 vers `artofact.ch`, commentée, à activer une fois DNS et certificat en place |
 | Sécurité | Pas de listing de répertoires, pas d'exécution PHP dans `uploads/`, accès refusé à `wp-config.php`, `xmlrpc.php`, `package.json`, `.env*`, `src/`, `node_modules/`, `.git/` |
 | Routes maison | `/documents/*` → médiathèque WordPress, `/login` → `wp-login.php` |
 | Maintenance | `touch .maintenance` coupe le site public en 503, le back-office et l'API restent joignables |
@@ -256,6 +259,8 @@ rm .maintenance       # retour à la normale
 
 Par FTP ou via le gestionnaire de fichiers, il suffit de créer ou supprimer un fichier vide de ce nom.
 
+Ce mécanisme est indépendant du mode maintenance du **Manager Infomaniak** (page de maintenance + liste d'IP autorisées), qui agit au niveau de l'hébergement. Les deux peuvent être actifs en même temps : vérifier les deux quand le site semble coupé.
+
 - La page servie est [public/.infomaniak-maintenance.html](public/.infomaniak-maintenance.html), autonome (styles en ligne, aucune dépendance au bundle). Son nom commence par un point parce que c'est celui qu'attend Infomaniak dans le web root — ne pas le « corriger » en le renommant.
 - Le drapeau est un fichier **séparé** et non une ligne à décommenter dans `.htaccess` : ce dernier fait partie du zip, donc il est écrasé à chaque déploiement et une bascule inscrite dedans serait silencieusement perdue.
 - La réponse est un **503** et non un 200, pour éviter que les moteurs prennent la page de maintenance pour le contenu du site.
@@ -263,9 +268,10 @@ Par FTP ou via le gestionnaire de fichiers, il suffit de créer ou supprimer un 
 
 ### Référencement
 
-Un hébergement statique répond **200 à n'importe quelle URL** : Apache sert `index.html` et c'est le routeur client qui décide s'il connaît la route. Sans précaution, une faute de frappe ou un lien périmé s'indexerait donc comme une page valide — un *soft 404*. Trois pièces couvrent le sujet :
+Un hébergement statique répond **200 à n'importe quelle URL** : Apache sert `index.html` et c'est le routeur client qui décide s'il connaît la route. Sans précaution, une faute de frappe ou un lien périmé s'indexerait donc comme une page valide — un *soft 404*. Quatre pièces couvrent le sujet :
 
 - **`resolvePage` dans [App.tsx](src/App.tsx)** est la table unique des routes valides. Quand elle ne trouve rien, `App` pose `<meta name="robots" content="noindex, follow">` en plus d'afficher la 404. La balise est retirée dès qu'on revient sur une route connue.
+- **L'en-tête `X-Robots-Tag`** posé par le `.htaccess` désindexe tout hôte autre que `artofact.ch` (alias, adresse de recette), fichiers statiques compris. Il est écrit avec `<If>` + `Header set` : la variante `SetEnvIf` + `Header always set … env=!` n'émettait rien chez Infomaniak.
 - **[public/robots.txt](public/robots.txt)** écarte `/wp-admin/` de l'index — WordPress partage le domaine — et déclare le sitemap.
 - **[public/sitemap.xml](public/sitemap.xml)** liste les routes du **front**, pas les permaliens WordPress : le front WP est fermé et ses URL ne correspondent à aucune route React, donc `/wp-sitemap.xml` n'a rien à y faire.
 

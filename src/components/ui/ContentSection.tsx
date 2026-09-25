@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import bannerImg from "../../assets/images/banner.svg";
+import bannerImg from "../../assets/images/banner.webp";
 import { CTAButton } from "./CTAButton";
 import { RichText } from "./RichText";
 import type { ContentVariant } from "../../config/acf-schemas";

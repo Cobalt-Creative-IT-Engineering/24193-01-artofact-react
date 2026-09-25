@@ -8,9 +8,13 @@ import { formatDuoTitle } from "../lib/utils";
 const DUOS_INITIAL = 2;
 const DUOS_STEP    = 1;
 
-// ─── Lorem ipsum placeholder ──────────────────────────────────────────────
+// ─── Textes d'exemple ─────────────────────────────────────────────────────
 
-const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.";
+// Intro du hero : en dur (pas de champ ACF pour l'instant).
+const HERO_INTRO = "Chaque duo réunit un artiste suisse et une entreprise du sud fribourgeois. Pendant plusieurs mois, ils partagent un atelier, des matériaux et des questions. De cette rencontre naît une œuvre originale, qui porte la trace des gestes, des savoir-faire et de l'identité de l'entreprise.";
+
+// Texte des faux duos (affichés seulement si WP ne renvoie aucun duo).
+const SAMPLE_DUO = "Un artiste et une entreprise fribourgeoise, réunis le temps d'une immersion. De leurs échanges naît une œuvre originale, façonnée à partir des matériaux et des gestes de l'atelier.";
 
 // ─── Fake data (affiché si WP retourne 0 duos) ───────────────────────────
 
@@ -20,7 +24,7 @@ const FAKE_DUOS_LIST: DuoNode[] = [
     title: "Ecal x Atelier Firmann",
     duoFields: {
       titre: "Ecal x Atelier Firmann",
-      texte: LOREM,
+      texte: SAMPLE_DUO,
     },
   },
   {
@@ -28,7 +32,7 @@ const FAKE_DUOS_LIST: DuoNode[] = [
     title: "Matthia Gremaud x Morand construction",
     duoFields: {
       titre: "Matthia Gremaud x Morand construction",
-      texte: LOREM,
+      texte: SAMPLE_DUO,
     },
   },
 ];
@@ -68,7 +72,7 @@ export function DuosPage() {
 
   return (
     <main className="duos-main">
-      <DuosHero title="Les duos" intro={LOREM} />
+      <DuosHero title="Les duos" intro={HERO_INTRO} />
 
       {duosToShow.map((duo, i) => {
         const fields = duo.duoFields ?? {};

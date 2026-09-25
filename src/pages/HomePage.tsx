@@ -1,16 +1,16 @@
 import { useHomeContent, useDuosList } from "../hooks/useWordPress";
 import type { DuoNode, AcfLink } from "../config/acf-schemas";
 import { CTAButton, ContentSection, Sticker, RichText } from "../components/ui";
-import bannerImg from "../assets/images/banner.svg";
+import bannerImg from "../assets/images/banner.webp";
 import { formatDuoTitle } from "../lib/utils";
 
-// ─── Lorem ipsum (placeholders pré-prod tant que WP n'a pas de contenu) ───
+// ─── Textes d'exemple (affichés tant que le champ ACF correspondant est vide) ───
 
-const LOREM_INTRO = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos.";
+const SAMPLE_INTRO = "ArtÔfact fait se rencontrer des artistes suisses et des entreprises du sud fribourgeois. En immersion dans les ateliers et les lieux de production, chaque artiste s'empare des matériaux, des gestes et des savoir-faire de son entreprise partenaire pour créer une œuvre originale. Un dialogue inédit entre création contemporaine et monde industriel, à découvrir au fil des duos.";
 
-const LOREM_DUO = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus.";
+const SAMPLE_DUO = "Un artiste et une entreprise fribourgeoise, réunis le temps d'une immersion. De leurs échanges naît une œuvre originale, façonnée à partir des matériaux et des gestes de l'atelier.";
 
-const LOREM_COMPTOIR = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.";
+const SAMPLE_COMPTOIR = "Les œuvres nées des duos ArtÔfact sont présentées au Comptoir gruérien. L'occasion de découvrir le fruit de ces rencontres entre art et industrie, et d'échanger avec les artistes et les entreprises qui y ont pris part.";
 
 // Fake data affichée si le CPT `duo` est vide en pré-prod
 const FAKE_DUOS_HOME: DuoNode[] = [
@@ -19,7 +19,7 @@ const FAKE_DUOS_HOME: DuoNode[] = [
     title: "Matthia Gremaud x Morand construction",
     duoFields: {
       titre: "Matthia Gremaud x Morand construction",
-      texte: LOREM_DUO,
+      texte: SAMPLE_DUO,
     },
   },
   {
@@ -27,7 +27,7 @@ const FAKE_DUOS_HOME: DuoNode[] = [
     title: "Ecal x Atelier Firmann",
     duoFields: {
       titre: "Ecal x Atelier Firmann",
-      texte: LOREM_DUO,
+      texte: SAMPLE_DUO,
     },
   },
 ];
@@ -61,12 +61,12 @@ export function HomePage() {
 
   const introTitle    = enTete?.titre || "Mêler art\net industrie";
   const introSubtitle = enTete?.sousTitre ?? "";
-  const introText     = enTete?.texte || (status !== "loading" ? LOREM_INTRO : "");
+  const introText     = enTete?.texte || (status !== "loading" ? SAMPLE_INTRO : "");
   const introCta      = linkProps(enTete?.lien);
 
   const piedTitle    = piedDePage?.titre || "Comptoir gruérien";
   const piedSubtitle = piedDePage?.sousTitre ?? "";
-  const piedText     = piedDePage?.texte || (status !== "loading" ? LOREM_COMPTOIR : "");
+  const piedText     = piedDePage?.texte || (status !== "loading" ? SAMPLE_COMPTOIR : "");
   const piedCta      = linkProps(piedDePage?.lien);
 
   // Duos affichés sur la home : on prend les premiers retournés par le CPT.

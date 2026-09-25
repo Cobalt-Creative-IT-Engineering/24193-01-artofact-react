@@ -1,5 +1,5 @@
 import { CTAButton } from "./CTAButton";
-import bannerImg from "../../assets/images/banner.svg";
+import bannerImg from "../../assets/images/banner.webp";
 
 type Props = {
   name: string;

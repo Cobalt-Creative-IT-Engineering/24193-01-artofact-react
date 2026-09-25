@@ -5,11 +5,13 @@ import { CTAButton, Sticker, RichText, EntityCard, EntityDetailModal } from "../
 import type { EntityCardProps } from "../components/ui";
 import { formatDuoTitle } from "../lib/utils";
 import { setPageMeta } from "../lib/meta";
-import bannerImg from "../assets/images/banner.svg";
+import bannerImg from "../assets/images/banner.webp";
 
-// ─── Lorem ipsum placeholder ──────────────────────────────────────────────
+// ─── Textes d'exemple (faux duo affiché si WP ne renvoie rien) ────────────
 
-const LOREM = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus, ut interdum tellus elit sed risus. Maecenas eget condimentum velit, sit amet feugiat lectus.";
+const SAMPLE_DUO_TEXT = "Un artiste et une entreprise fribourgeoise, réunis le temps d'une immersion. Au fil des visites d'atelier et des échanges avec les équipes, l'artiste s'approprie les matériaux et les gestes du métier pour imaginer une œuvre originale, pensée avec l'entreprise et pour elle.";
+const SAMPLE_ARTISTE   = "Artiste suisse, il a été invité à plonger au cœur de l'entreprise pour observer ses métiers et en faire la matière d'une création.";
+const SAMPLE_ENTREPRISE = "Entreprise du sud fribourgeois, elle a ouvert ses portes à l'artiste et mis à sa disposition ses ressources, ses matériaux et ses compétences.";
 
 // ─── Fake data (affiché si WP retourne null après chargement) ────────────
 
@@ -19,12 +21,12 @@ const FAKE_DUO_DETAIL: DuoNode = {
   duoFields: {
     titre:     "Matthia Gremaud x Morand construction",
     sousTitre: "Un duo gravé dans le métal",
-    texte:     LOREM,
+    texte:     SAMPLE_DUO_TEXT,
     artiste: {
-      nodes: [{ slug: "matthia-gremaud", title: "Matthia Gremaud", artistes: { presentation: LOREM } }],
+      nodes: [{ slug: "matthia-gremaud", title: "Matthia Gremaud", artistes: { presentation: SAMPLE_ARTISTE } }],
     },
     entreprise: {
-      nodes: [{ slug: "morand-construction", title: "Morand construction", partenaires: { presentation: LOREM } }],
+      nodes: [{ slug: "morand-construction", title: "Morand construction", partenaires: { presentation: SAMPLE_ENTREPRISE } }],
     },
   },
 };
