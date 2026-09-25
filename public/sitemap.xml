@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Sitemap du site React.
+
+  Il décrit les routes du FRONT, pas les permaliens WordPress : WordPress n'est
+  ici que l'administration et la source de contenu (ACF), son front est fermé et
+  ses URL (https://artofact.ch/actualite/… au singulier) ne correspondent à aucune
+  route React. Le sitemap natif /wp-sitemap.xml n'a donc rien à faire ici.
+
+  ⚠ Fichier STATIQUE, tenu à la main. À reprendre quand :
+    - une route est ajoutée ou retirée dans App.tsx ;
+    - le site passe sur son domaine définitif (les URL ci-dessous sont absolues).
+
+  Les détails de duos (/duos/:slug) ne sont pas listés : un fichier statique ne
+  peut pas suivre les publications. Ils restent découvrables depuis /duos.
+
+  Le domaine est repris de la configuration CORS du README — à confirmer avant
+  la mise en ligne.
+-->
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://artofact.ch/</loc>
+    <lastmod>2026-09-25</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>https://artofact.ch/concept</loc>
+    <lastmod>2026-09-25</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://artofact.ch/duos</loc>
+    <lastmod>2026-09-25</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://artofact.ch/artistes</loc>
+    <lastmod>2026-09-25</lastmod>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://artofact.ch/partenaires</loc>
+    <lastmod>2026-09-25</lastmod>
+    <priority>0.5</priority>
+  </url>
+</urlset>

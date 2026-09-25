@@ -1,10 +1,87 @@
-# Configuration Apache pour le déploiement de dist/.
-# Copié tel quel dans dist/ par Vite — décompressez le zip dans le web root, rien à ajouter.
-# Prérequis côté serveur : mod_rewrite actif et "AllowOverride All" sur le vhost,
-# sans quoi ce fichier est purement et simplement ignoré.
+# =============================================================================
+#  ArtÔfact — .htaccess de la RACINE du site.
+#
+#  WordPress et le build React se partagent cette racine : WP sous /login et
+#  /wp-admin, le SPA sous /. Ce fichier est copié tel quel dans dist/ par Vite,
+#  il se trouve donc à la racine du dist.zip et REMPLACE celui du serveur à
+#  chaque déploiement. Il doit rester un sur-ensemble de la configuration
+#  serveur, sinon les règles WordPress disparaissent silencieusement.
+#
+#  Origine : configuration de production de Veveyse 2030 (même montage, validée
+#  en test), complétée par les blocs maintenance, canonique, cache et compression.
+#
+#  Prérequis : mod_rewrite actif et "AllowOverride All" sur le vhost, sans quoi
+#  Apache ignore ce fichier sans le moindre message d'erreur.
+#
+#  ATTENTION : Wordfence (wordfence-waf.php) peut écrire dans ce fichier.
+#  Avant un déploiement, comparer avec la version réellement en place.
+# =============================================================================
+
+RewriteEngine On
 
 # ---------------------------------------------------------------------------
-# Mode maintenance
+# AJOUT — Arbitrage index.html / index.php
+#
+# index.html (React) et index.php (WordPress) se disputent la racine. On tranche
+# explicitement en faveur du front : sans cette ligne, on dépend de l'ordre par
+# défaut du serveur, qui varie d'un hébergeur à l'autre — et un jour la home
+# afficherait le thème WordPress à la place du site.
+# /wp-admin/ n'est pas affecté : il ne contient pas d'index.html, donc son
+# index.php reste servi normalement.
+# ---------------------------------------------------------------------------
+<IfModule mod_dir.c>
+  DirectoryIndex index.html index.php
+</IfModule>
+
+#
+#Security start
+# Sécurité - Désactiver le listing des répertoires
+Options -Indexes
+
+# Sécurité - Bloquer l'exécution PHP dans le dossier uploads
+<IfModule mod_rewrite.c>
+    RewriteRule ^wp-content/uploads/.*\.(php|php3|php4|php5|php7|phtml|pl|py|jsp|asp|sh|cgi)$ - [F,L]
+</IfModule>
+
+# Sécurité - Bloquer l'accès aux fichiers sensibles WordPress
+<FilesMatch "^(wp-config\.php|readme\.html|license\.txt|xmlrpc\.php)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# Sécurité - Bloquer l'accès aux fichiers/dossiers sources du projet React
+<FilesMatch "^(package\.json|package-lock\.json|composer\.json|vite\.config\.(js|ts)|\.env.*)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order allow,deny
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_rewrite.c>
+    RewriteRule ^(src|node_modules|\.git)/ - [F,L]
+</IfModule>
+#Security END
+#Route START
+
+#Route END
+
+# Convention maison : /documents/xxx.pdf pointe sur la médiathèque WordPress.
+# Rien ne l'utilise côté React pour l'instant (les URLs d'upload arrivent absolues
+# depuis l'API), on la garde pour rester aligné sur les autres projets.
+RewriteRule ^documents/(.*)$ /wp-content/uploads/$1 [L]
+
+RewriteRule ^login/?$ /wp-login.php [NC,L]
+
+# ---------------------------------------------------------------------------
+# AJOUT — Mode maintenance
 #
 #   ACTIVER    : créer un fichier vide nommé ".maintenance" à la racine du site,
 #                à côté d'index.html (FTP, gestionnaire de fichiers, ou en SSH :
@@ -27,8 +104,16 @@
   # RewriteCond %{REMOTE_ADDR} !=203.0.113.42
 
   RewriteCond %{DOCUMENT_ROOT}/.maintenance -f
+
+  # Ne pas boucler sur la page elle-même : le ErrorDocument ci-dessous repasse ici.
   RewriteCond %{REQUEST_URI} !^/\.infomaniak-maintenance\.html$
   RewriteCond %{REQUEST_URI} !^/favicon\.svg$
+
+  # WordPress reste accessible pendant la coupure : la maintenance concerne le
+  # site public, pas le backoffice — et c'est souvent parce qu'on y travaille
+  # qu'elle est activée. L'éditeur WP dépend de /wp-json, d'où sa présence ici.
+  RewriteCond %{REQUEST_URI} !^/(wp-admin|wp-content|wp-includes|wp-json|wp-login\.php|xmlrpc\.php|graphql)
+
   RewriteRule ^ - [R=503,L]
 </IfModule>
 
@@ -53,36 +138,53 @@ ErrorDocument 503 /.infomaniak-maintenance.html
 </IfModule>
 
 # ---------------------------------------------------------------------------
-# Réécriture SPA
-# Le routing passe par l'History API : toute URL profonde doit renvoyer index.html,
-# sinon Apache répond 404 sur /articles/mon-article et consorts.
+# AJOUT — URL canonique de l'accueil
+#
+# /index.html est un fichier réel : Apache le sert directement, sans réécriture.
+# Le routeur React le normalise désormais vers "/" (useRoute), mais cette règle
+# évite en plus que l'accueil soit indexé sous deux adresses.
+#
+# Le test porte sur THE_REQUEST (la ligne de requête d'origine, inchangée par les
+# réécritures internes) : sans cette précaution, la réécriture SPA vers
+# /index.html redéclencherait cette règle et provoquerait une boucle de redirection.
 # ---------------------------------------------------------------------------
 <IfModule mod_rewrite.c>
-  RewriteEngine On
+  RewriteCond %{THE_REQUEST} \s/+index\.html[\s?] [NC]
+  RewriteRule ^index\.html$ / [R=301,L]
+</IfModule>
 
-  # Déploiement dans un sous-dossier (https://exemple.com/app/) : décommentez et
-  # ajustez, puis remplacez "/index.html" ci-dessous par "index.html".
-  # RewriteBase /
-
-  # Un fichier ou un dossier réellement présent est servi tel quel.
-  RewriteCond %{REQUEST_FILENAME} -f [OR]
-  RewriteCond %{REQUEST_FILENAME} -d
-  RewriteRule ^ - [L]
-
-  # Tout le reste est confié au routeur client.
-  RewriteRule . /index.html [L]
+# SPA React - servir index.html pour les routes React qui n'existent pas physiquement
+#
+# Les exclusions sont load-bearing : sans elles, /wp-json et /graphql — qui sont des
+# routes virtuelles, pas des fichiers — seraient réécrites vers index.html. Le site
+# s'afficherait normalement mais resterait vide, faute d'API.
+<IfModule mod_rewrite.c>
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/(wp-admin|wp-content|wp-includes|wp-json|wp-login\.php|xmlrpc\.php|graphql)
+    RewriteRule ^ /index.html [L]
 </IfModule>
 
 # ---------------------------------------------------------------------------
-# Cache
+# AJOUT — Cache
+#
+# Infomaniak pose déjà des en-têtes de cache au niveau serveur, mais par EXTENSION :
+# favicon.svg se retrouve figé un an alors qu'il n'a pas de hash de contenu, donc
+# le remplacer n'atteindrait jamais les visiteurs déjà venus. Les règles ci-dessous
+# reprennent la main sur les chemins concernés.
 # ---------------------------------------------------------------------------
 <IfModule mod_headers.c>
-  # Les fichiers de /assets/ portent un hash de contenu dans leur nom (index-DgfW3RHs.js) :
-  # un changement de contenu change le nom, donc ils sont immuables.
-  # Le test porte sur le chemin et non sur l'extension, car favicon.svg et robots.txt
-  # viennent de public/ et n'ont PAS de hash — les figer un an serait une erreur.
+  # Les fichiers de /assets/ portent un hash de contenu dans leur nom
+  # (index-Dqi11g3R.js) : un changement de contenu change le nom, donc ils sont
+  # immuables. Le test porte sur le CHEMIN et non sur l'extension, justement pour
+  # ne pas figer ce qui vient de public/ et n'est pas hashé.
   SetEnvIf Request_URI "^/assets/" ASSET_IMMUTABLE
   Header set Cache-Control "public, max-age=31536000, immutable" env=ASSET_IMMUTABLE
+
+  # Non hashés : une heure, pour rester remplaçables.
+  <FilesMatch "^(favicon\.svg|robots\.txt)$">
+    Header set Cache-Control "public, max-age=3600"
+  </FilesMatch>
 
   # index.html ne doit jamais être mis en cache : il référence les assets hashés.
   # Un index.html périmé pointe vers des fichiers supprimés au déploiement suivant,
@@ -90,16 +192,31 @@ ErrorDocument 503 /.infomaniak-maintenance.html
   # La page de maintenance est soumise à la même règle : mise en cache, elle
   # continuerait de s'afficher chez le visiteur après la fin de la maintenance.
   <FilesMatch "^(index\.html|\.infomaniak-maintenance\.html)$">
-    Header set Cache-Control "no-cache, must-revalidate"
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
   </FilesMatch>
 </IfModule>
 
 # ---------------------------------------------------------------------------
-# Compression — le bundle JS passe d'environ 165 ko à 53 ko.
-# Sans effet si l'hébergeur l'active déjà globalement.
+# AJOUT — Compression. Sans effet si l'hébergeur l'active déjà globalement.
 # ---------------------------------------------------------------------------
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml \
                                 application/javascript application/json \
                                 image/svg+xml
 </IfModule>
+
+# BEGIN WordPress
+# Les directives (lignes) entre « BEGIN WordPress » et « END WordPress » sont générées
+# dynamiquement, et doivent être modifiées uniquement via les filtres WordPress.
+# Toute modification des directives situées entre ces marqueurs sera surchargée.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+</IfModule>
+
+# END WordPress

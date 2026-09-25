@@ -26,7 +26,7 @@
 
 Site officiel de l'organisation **Artofact**, développé en **WordPress headless** avec un frontend **React + TypeScript**.
 
-WordPress sert uniquement de source de contenu : l'application React récupère les données via l'API REST, ACF et WPGraphQL, puis se déploie sous forme de fichiers statiques sur Netlify. Le design suit un template Figma dédié (à venir) et la structure du site comprend 11 pages — voir [doc/blueprint_summary.md](doc/blueprint_summary.md) pour le détail.
+WordPress sert uniquement de source de contenu : l'application React récupère les données via l'API REST, ACF et WPGraphQL, puis se déploie sous forme de fichiers statiques sur un hébergement Apache (Infomaniak), dans le même web root que WordPress. Le design suit un template Figma dédié (à venir) et la structure du site comprend 11 pages — voir [doc/blueprint_summary.md](doc/blueprint_summary.md) pour le détail.
 
 Ce projet est issu du blueprint interne Cobalt [`wp-react-headless-blueprint`](https://github.com/Cobalt-Creative-IT-Engineering/wp-react-headless-blueprint), puis customisé pour Artofact (suppression des éléments festival, neutralisation des assets, adaptation des schémas ACF).
 
@@ -54,7 +54,7 @@ L'arborescence du projet est organisée comme suit :
 ├── tsconfig.node.json
 ├── tailwind.config.js          <- Configuration Tailwind
 ├── postcss.config.js
-├── netlify.toml                <- Configuration de build/deploy Netlify
+├── netlify.toml                <- Vestige Netlify, plus utilisé (voir Déploiement)
 ├── .env.example                <- Template d'environnement (à copier en .env.local)
 ├── README.md                   <- Ce fichier
 ├── CLAUDE.md                   <- Guide pour l'assistant Claude Code
@@ -63,9 +63,10 @@ L'arborescence du projet est organisée comme suit :
 │   └── workflows/
 │       └── ci.yml              <- CI GitHub Actions (typecheck, build, artefact dist)
 ├── public/                     <- Assets statiques servis tels quels (favicon, OG images, …)
-│   ├── _redirects              <- Fallback SPA pour Netlify
 │   ├── .htaccess               <- Fallback SPA, cache, compression, maintenance (Apache)
-│   └── .infomaniak-maintenance.html  <- Page affichée pendant la maintenance
+│   ├── .infomaniak-maintenance.html  <- Page affichée pendant la maintenance
+│   ├── robots.txt              <- Exclut /wp-admin, pointe vers le sitemap
+│   └── sitemap.xml             <- Routes du front, tenu à la main
 └── src/
     ├── main.tsx                <- Point d'entrée Vite
     ├── App.tsx                 <- Shell de l'app + table de routage
@@ -198,7 +199,7 @@ Le workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) se déclenche s
 1. `npm ci` sur Node 22 (cache npm activé)
 2. Contrôle de la présence de `VITE_WP_URL` — sans elle, le build tomberait sur l'URL WordPress de démo et produirait un site sans contenu
 3. `npm run build` (typecheck `tsc` puis `vite build`)
-4. Contrôle du contenu de `dist/` (`_redirects`, `.htaccess`, `.infomaniak-maintenance.html`)
+4. Contrôle du contenu de `dist/` (`.htaccess`, `.infomaniak-maintenance.html`)
 5. Publication de `dist/` en artefact téléchargeable (`dist.zip`, conservé 30 jours)
 
 Les variables `VITE_*` sont **inlinées dans le bundle au moment du build** : elles doivent donc être définies sur le runner, pas sur le serveur de destination. À renseigner dans **Settings → Secrets and variables → Actions → Variables** :
@@ -212,10 +213,37 @@ Le déclenchement manuel accepte un paramètre `wp_url` pour builder ponctuellem
 
 ### Déploiement
 
-Le site est statique : il suffit de servir le contenu de `dist/`. Deux cibles sont prévues, et le routeur maison (History API) impose dans les deux cas une règle de réécriture vers `index.html`, sans quoi un rafraîchissement sur une URL profonde (`/duos/mon-duo`) renvoie un 404.
+Le site est statique : il suffit de servir le contenu de `dist/`. Le routeur maison (History API) impose une règle de réécriture vers `index.html`, sans quoi un rafraîchissement sur une URL profonde (`/duos/mon-duo`) renvoie un 404.
 
-- **Netlify** — build automatique via [netlify.toml](netlify.toml) ; la réécriture vient de `public/_redirects`.
-- **Hébergement Apache / Infomaniak** — déployer le contenu de l'artefact `dist.zip` dans le web root ; la réécriture, le cache, la compression et la bascule de maintenance viennent de [public/.htaccess](public/.htaccess). Le vhost doit avoir `AllowOverride All` et `mod_rewrite` actif, sans quoi Apache ignore le fichier **sans aucun message d'erreur**. Attention aussi : `.htaccess` et `.infomaniak-maintenance.html` sont des fichiers cachés, vérifiez qu'ils survivent à votre outil de transfert.
+**Cible unique : hébergement Apache / Infomaniak.** Déployer le contenu de l'artefact `dist.zip` dans le web root ; la réécriture, le cache, la compression et la bascule de maintenance viennent de [public/.htaccess](public/.htaccess). Le vhost doit avoir `AllowOverride All` et `mod_rewrite` actif, sans quoi Apache ignore le fichier **sans aucun message d'erreur**. Attention aussi : `.htaccess` et `.infomaniak-maintenance.html` sont des fichiers cachés, vérifiez qu'ils survivent à votre outil de transfert.
+
+Netlify n'est plus une cible : `public/_redirects` a été supprimé, donc un déploiement Netlify servirait la home mais renverrait 404 sur toute URL profonde. `netlify.toml` n'a pas été supprimé mais ne sert plus à rien — le restaurer demanderait de remettre la règle de réécriture.
+
+### Cohabitation avec WordPress dans le même web root
+
+C'est le montage cible : le contenu de `dist/` est déposé **à côté** de l'installation WordPress (`index.html` voisin de `index.php`, `wp-admin/`, `wp-content/`, `wp-includes/`). Un seul domaine, un seul `.htaccess`, et le front devient *same-origin* avec l'API — plus de CORS ni de requête préflight. `VITE_WP_URL` vaut alors l'URL publique du site elle-même.
+
+Le `.htaccess` du projet est la configuration de production validée sur un montage identique (Veveyse 2030), augmentée des blocs maintenance, canonique, cache et compression. Deux règles de fonctionnement en découlent :
+
+- **Ce fichier remplace celui du serveur à chaque déploiement** (il est à la racine du `dist.zip`). Il doit donc rester un *sur-ensemble* de ce qui tourne en prod : sécurité, routes maison, bloc `# BEGIN WordPress` compris. Une règle présente sur le serveur mais absente d'ici disparaît silencieusement à la mise en ligne.
+- **Wordfence peut écrire dans ce fichier.** Avant un déploiement, comparer avec la version réellement en place sur le serveur.
+
+Ce que contient le fichier, dans l'ordre où Apache l'applique :
+
+| Bloc | Rôle |
+| ---- | ---- |
+| Sécurité | Pas de listing de répertoires, pas d'exécution PHP dans `uploads/`, accès refusé à `wp-config.php`, `xmlrpc.php`, `package.json`, `.env*`, `src/`, `node_modules/`, `.git/` |
+| Routes maison | `/documents/*` → médiathèque WordPress, `/login` → `wp-login.php` |
+| Maintenance | `touch .maintenance` coupe le site public en 503, le back-office et l'API restent joignables |
+| Canonique | `/index.html` → `/` en 301 |
+| Fallback SPA | Tout ce qui n'est ni fichier ni dossier part sur `index.html`, **sauf** les chemins WordPress |
+| Cache / compression | `/assets/` immuable un an, `index.html` et page de maintenance jamais mis en cache, `favicon.svg` et `robots.txt` une heure |
+| `# BEGIN WordPress` | Le bloc généré par WordPress, conservé tel quel : c'est lui qui sert `/wp-json` et `/graphql` |
+
+Deux points à garder en tête :
+
+- **Les exclusions du fallback SPA sont load-bearing.** `/wp-json` et `/graphql` sont des routes virtuelles, sans fichier derrière : sans ces exclusions elles renvoient `index.html`, et le front reçoit du HTML là où il attend du JSON. Le site s'affiche alors normalement mais reste vide, sans la moindre erreur réseau. Toute autre route virtuelle de WordPress (sitemap XML, flux RSS) subit le même sort tant qu'elle n'est pas ajoutée à la liste.
+- **L'accueil dépend de l'ordre du `DirectoryIndex` du serveur**, puisque `index.html` et `index.php` cohabitent à la racine. Infomaniak sert `index.html` en premier — c'est vérifié en production sur ce montage. Le fichier ne force pas cet ordre, pour rester identique à la version testée ; en cas de doute sur un autre hébergeur, ajouter `DirectoryIndex index.html index.php`.
 
 ### Mode maintenance (Apache uniquement)
 
@@ -232,6 +260,16 @@ Par FTP ou via le gestionnaire de fichiers, il suffit de créer ou supprimer un 
 - Le drapeau est un fichier **séparé** et non une ligne à décommenter dans `.htaccess` : ce dernier fait partie du zip, donc il est écrasé à chaque déploiement et une bascule inscrite dedans serait silencieusement perdue.
 - La réponse est un **503** et non un 200, pour éviter que les moteurs prennent la page de maintenance pour le contenu du site.
 - Pour continuer à consulter le site pendant la maintenance, décommenter la ligne `RewriteCond %{REMOTE_ADDR}` du `.htaccess` et y mettre son IP publique.
+
+### Référencement
+
+Un hébergement statique répond **200 à n'importe quelle URL** : Apache sert `index.html` et c'est le routeur client qui décide s'il connaît la route. Sans précaution, une faute de frappe ou un lien périmé s'indexerait donc comme une page valide — un *soft 404*. Trois pièces couvrent le sujet :
+
+- **`resolvePage` dans [App.tsx](src/App.tsx)** est la table unique des routes valides. Quand elle ne trouve rien, `App` pose `<meta name="robots" content="noindex, follow">` en plus d'afficher la 404. La balise est retirée dès qu'on revient sur une route connue.
+- **[public/robots.txt](public/robots.txt)** écarte `/wp-admin/` de l'index — WordPress partage le domaine — et déclare le sitemap.
+- **[public/sitemap.xml](public/sitemap.xml)** liste les routes du **front**, pas les permaliens WordPress : le front WP est fermé et ses URL ne correspondent à aucune route React, donc `/wp-sitemap.xml` n'a rien à y faire.
+
+Le sitemap est un fichier **statique, tenu à la main**, avec des URL absolues. À reprendre quand une route est ajoutée ou retirée dans `App.tsx`, et au passage sur le domaine définitif. Les pages de détail de duos (`/duos/:slug`) n'y sont volontairement pas : elles restent découvrables depuis `/duos`.
 
 ## Contribuer
 
@@ -288,8 +326,6 @@ Email : contact@cobalt-it.ch
 <!-- Infrastructure -->
 
 [github-dev]: https://img.shields.io/badge/github-%23121011.svg?style=for-the-badge&logo=github&logoColor=white
-[netlify-dev]: https://img.shields.io/badge/netlify-%23000000.svg?style=for-the-badge&logo=netlify&logoColor=#00C7B7
-[netlify-url]: https://www.netlify.com/
 
 <!-- CI/CD -->
 

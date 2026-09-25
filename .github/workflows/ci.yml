@@ -59,30 +59,29 @@ jobs:
 
       # Le routeur maison (History API, pas de react-router) sert /duos/:slug côté
       # client : sans règle de fallback, un refresh sur une URL profonde renvoie un 404
-      # de l'hébergeur. En dev c'est `historyApiFallback` de Vite ; en prod les règles
-      # vivent dans public/ et sont copiées telles quelles dans dist/ par vite build —
-      # _redirects pour Netlify, .htaccess pour Apache/Infomaniak. On vérifie aussi la
+      # de l'hébergeur. En dev c'est `historyApiFallback` de Vite ; en prod c'est
+      # public/.htaccess, copié tel quel dans dist/ par vite build. On vérifie aussi la
       # page de maintenance, servie en 503 par le .htaccess quand un fichier .maintenance
       # est posé à la racine du site : absente, la maintenance renverrait une page vide.
       - name: Vérifier le contenu de dist/
         run: |
           test -f dist/index.html || { echo "::error::dist/index.html manquant"; exit 1; }
           missing=0
-          for f in _redirects .htaccess .infomaniak-maintenance.html; do
+          for f in .htaccess .infomaniak-maintenance.html; do
             if [ ! -f "dist/$f" ]; then
               echo "::error::dist/$f manquant — vérifiez que le fichier est bien dans public/."
               missing=1
             fi
           done
           [ "$missing" -eq 0 ] || exit 1
-          echo "dist/ complet : _redirects (Netlify) + .htaccess et .infomaniak-maintenance.html (Apache)"
+          echo "dist/ complet : .htaccess + .infomaniak-maintenance.html"
 
       # On n'zippe PAS à la main : upload-artifact compresse déjà, et uploader un .zip
       # donnerait un zip dans un zip. Avec `name: dist` + `path: dist`, le bouton
       # "Download" de l'onglet Actions renvoie un dist.zip dont la RACINE contient
       # directement index.html et assets/ — décompressable tel quel dans un web root.
-      # Netlify fait son propre build (netlify.toml) : cet artefact sert au contrôle
-      # visuel et à un déploiement manuel de secours.
+      # C'est l'artefact de déploiement : on le décompresse dans le web root du
+      # serveur, par-dessus l'installation WordPress existante.
       - name: Publier dist.zip
         uses: actions/upload-artifact@v7
         with:

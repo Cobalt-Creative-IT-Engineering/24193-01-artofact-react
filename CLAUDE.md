@@ -17,7 +17,7 @@ Pour démarrer : copier `.env.example` en `.env.local`, renseigner `VITE_WP_URL`
 
 ## Architecture
 
-Headless WordPress + React 18 + TypeScript + Vite + Tailwind. WordPress est source de contenu uniquement ; le front se déploie en statique (Netlify via `netlify.toml`).
+Headless WordPress + React 18 + TypeScript + Vite + Tailwind. WordPress est source de contenu uniquement ; le front se déploie en statique sur Apache/Infomaniak, dans le même web root que WordPress (voir « Déploiement & CI »).
 
 ### Couche de données ([src/lib/wordpress.ts](src/lib/wordpress.ts), [src/hooks/useWordPress.ts](src/hooks/useWordPress.ts))
 
@@ -39,11 +39,31 @@ Helpers : `text`, `image` (gère objet ACF, string URL, ou ID d'attachment réso
 
 Routeur home-made basé sur l'History API — **pas de react-router**. Un handler global de `click` dans `App.tsx` intercepte tous les `<a href="/...">` internes et appelle `navigate()` qui `pushState` + dispatche un `popstate`. Les liens externes, `mailto:`, `tel:`, `target=_blank`, `download`, et ancres `#` sont laissés au navigateur.
 
-Table de routage dans `PageView` (App.tsx:98) : `/` → HomePage, `/concept` → ConceptPage, `/duos` → DuosPage, `/duos/:slug` → DuoDetailPage, sinon NotFoundPage. Ajouter une page = ajouter un `if` ici + le label dans `PAGE_LABELS` (App.tsx:40) pour le `<title>`. Attention : `NAV_ITEMS` référence des routes (`/organisation`, `/comptoir-gruerien`, `/partenaires`) qui ne sont pas encore branchées dans `PageView` et tombent donc sur NotFoundPage.
+Table de routage dans `resolvePage` (App.tsx) : `/` → HomePage, `/concept` → ConceptPage, `/duos` → DuosPage, `/duos/:slug` → DuoDetailPage, `/partenaires` → PartenairesPage, `/artistes` → ArtistesPage, `null` sinon. `PageView` se contente de `resolvePage(route) ?? <NotFoundPage />`.
+
+`resolvePage` est **la** source de vérité des routes valides : `App()` s'en sert aussi comme garde SEO (`noindex` quand elle retourne `null`, cf. section Meta tags). Une route ajoutée ailleurs que dans cette fonction serait donc servie mais marquée non indexable.
+
+Ajouter une page = trois endroits : un `if` dans `resolvePage`, le label dans `PAGE_LABELS` (App.tsx:42) pour le `<title>`, et une entrée dans [public/sitemap.xml](public/sitemap.xml), qui est un fichier statique tenu à la main. Toutes les routes internes de `NAV_ITEMS` sont branchées (« Comptoir gruérien » pointe vers un site externe).
 
 Migration legacy automatique : les URLs en `#/xxx` sont réécrites en `/xxx` au chargement (useRoute.ts:24).
 
-Le dev server a `historyApiFallback: true` dans [vite.config.ts](vite.config.ts) — nécessaire pour que le refresh sur `/duos/foo` renvoie `index.html` au lieu d'un 404. À conserver si on touche au proxy. En prod, le même fallback vient de `public/_redirects` (Netlify) et `public/.htaccess` (Apache), copiés dans `dist/` par vite build — le CI vérifie leur présence.
+Le dev server a `historyApiFallback: true` dans [vite.config.ts](vite.config.ts) — nécessaire pour que le refresh sur `/duos/foo` renvoie `index.html` au lieu d'un 404. À conserver si on touche au proxy. En prod, le même fallback vient de `public/.htaccess`, copié dans `dist/` par vite build — le CI vérifie sa présence.
+
+### Déploiement & CI ([.github/workflows/ci.yml](.github/workflows/ci.yml), [public/.htaccess](public/.htaccess))
+
+Le CI (push/PR sur `main` + `workflow_dispatch`) fait `npm ci`, vérifie que `VITE_WP_URL` n'est pas vide, lance `npm run build` puis publie `dist/` en artefact. Deux réglages à ne pas casser : `VITE_WP_URL` vient d'une **variable de dépôt** (elle est inlinée dans le bundle au build, la définir sur le serveur n'a aucun effet), et `include-hidden-files: true` sur `upload-artifact`, sans quoi `.htaccess` et `.infomaniak-maintenance.html` sont exclus du zip.
+
+Cible de déploiement : Apache/Infomaniak, **WordPress et le build React dans le même web root** (`index.html` à côté de `index.php`, `wp-admin/`, `wp-content/`). Dans ce montage `VITE_WP_URL` est l'URL publique du site lui-même, donc tout est same-origin. Apache est la seule cible : le `_redirects` de Netlify a été supprimé.
+
+Conséquences pour [public/.htaccess](public/.htaccess) :
+
+- Il part dans `dist/` et **remplace celui du serveur à chaque déploiement** : il doit rester un sur-ensemble de la config de prod (sécurité, routes maison `/login` et `/documents`, bloc `# BEGIN WordPress`). Ne rien y retirer sans vérifier ce qui tourne sur le serveur — Wordfence peut aussi y écrire.
+- Les exclusions du fallback SPA (`wp-admin|wp-content|wp-includes|wp-json|wp-login\.php|xmlrpc\.php|graphql`) sont **load-bearing** : sans elles, `/wp-json` renvoie `index.html` et le front reçoit du HTML au lieu de JSON, sans erreur réseau. Toute nouvelle route virtuelle WP doit être ajoutée à cette liste.
+- Le mode maintenance est un fichier drapeau `.maintenance` posé à la racine du site (hors zip, donc il survit aux déploiements) : 503 + `.infomaniak-maintenance.html`, back-office et API exclus de la coupure.
+
+Un fichier ajouté dans `public/` part tel quel en production — y compris les fichiers cachés. Ce n'est pas un dossier de brouillons.
+
+SEO : [public/robots.txt](public/robots.txt) écarte `/wp-admin/` de l'index (WordPress partage le domaine) et pointe vers [public/sitemap.xml](public/sitemap.xml). Ce sitemap est **statique et tenu à la main** : il liste les routes du front, pas les permaliens WordPress, et ses URL sont absolues — à reprendre à chaque route ajoutée et au passage sur le domaine définitif. Les détails de duos (`/duos/:slug`) n'y figurent pas, un fichier statique ne pouvant pas suivre les publications.
 
 ### Thèmes annuels ([src/themes/](src/themes/))
 
@@ -60,6 +80,8 @@ Deux leviers dans [src/config/site.ts](src/config/site.ts) :
 ### Meta tags ([src/lib/meta.ts](src/lib/meta.ts))
 
 Module stateful. `initMeta()` est appelé une fois au boot avec les infos de `/wp-json/` root. `setPageMeta({ title })` est appelé à chaque changement de route ; les pages de détail qui ont un titre/image propres (ex. DuoDetailPage) écrasent avec leurs propres infos. Pas de react-helmet — manipulation DOM directe sur les balises meta.
+
+Le drapeau `noindex` traite le **soft 404** : l'hébergement statique répond 200 à n'importe quelle URL (Apache sert `index.html`, c'est le routeur client qui tranche), donc sans `<meta name="robots" content="noindex, follow">` une faute de frappe ou un lien périmé s'indexerait comme une page valide. `setPageMeta` **retire** la balise quand `noindex` est absent — indispensable, sinon une page valide atteinte depuis la 404 resterait désindexée.
 
 ### Design system ([doc/design_system.md](doc/design_system.md))
 

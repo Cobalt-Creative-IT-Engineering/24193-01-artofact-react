@@ -1,2 +1,9 @@
 User-agent: *
 Allow: /
+
+# WordPress partage le web root du front : on écarte le back-office de l'index.
+Disallow: /wp-admin/
+Allow: /wp-admin/admin-ajax.php
+
+# Décrit les routes du front React, pas les permaliens WordPress.
+Sitemap: https://artofact.ch/sitemap.xml

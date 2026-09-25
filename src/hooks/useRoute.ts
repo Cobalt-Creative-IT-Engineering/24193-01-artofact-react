@@ -27,7 +27,13 @@ function getState(): RouteResult {
     history.replaceState(null, "", newPath);
   }
 
-  const pathname = window.location.pathname.replace(/\/$/, "") || "/";
+  // "/index.html" est une URL légitime : c'est le fichier réellement servi, et
+  // certains liens ou favoris y mènent directement. Sans cette normalisation, la
+  // table de routage ne le reconnaît pas et affiche "Page non trouvée" sur
+  // l'accueil.
+  const pathname = window.location.pathname
+    .replace(/\/index\.html$/, "/")
+    .replace(/\/$/, "") || "/";
   const hash     = window.location.hash.replace(/^#/, "") || null;
   const pageMatch = pathname.match(/^\/page\/(.+)$/);
   const slug = pageMatch ? pageMatch[1] : null;

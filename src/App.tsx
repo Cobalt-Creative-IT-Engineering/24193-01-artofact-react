@@ -73,7 +73,14 @@ export default function App() {
 
   // Meta par défaut selon la route (les pages de détail écrasent avec leurs propres infos).
   useEffect(() => {
-    setPageMeta({ title: getPageLabel(route) });
+    // L'hébergement statique répond 200 à toute URL inconnue : c'est le routeur
+    // client qui tranche. Sans ce noindex, un lien périmé ou une faute de frappe
+    // s'indexerait comme une page valide.
+    const found = resolvePage(route) !== null;
+    setPageMeta({
+      title:   found ? getPageLabel(route) : "Page non trouvée",
+      noindex: !found,
+    });
   }, [route]);
 
   // Scroll : ancre si présente, sinon remonte en haut.
@@ -99,12 +106,23 @@ export default function App() {
   );
 }
 
-function PageView({ route }: { route: string }) {
+/**
+ * Résout une route vers sa page, ou null si aucune ne correspond.
+ *
+ * Table unique, volontairement : la garde noindex de App() s'appuie sur cette
+ * même fonction. Une route ajoutée ici est donc automatiquement considérée
+ * comme valide par les moteurs, sans second endroit à tenir à jour.
+ */
+function resolvePage(route: string) {
   if (route === "/" || route === "")  return <HomePage />;
   if (route === "/concept")           return <ConceptPage />;
   if (route === "/duos")              return <DuosPage />;
   if (route.startsWith("/duos/"))     return <DuoDetailPage slug={route.replace("/duos/", "")} />;
   if (route === "/partenaires")       return <PartenairesPage />;
   if (route === "/artistes")          return <ArtistesPage />;
-  return <NotFoundPage />;
+  return null;
+}
+
+function PageView({ route }: { route: string }) {
+  return resolvePage(route) ?? <NotFoundPage />;
 }
