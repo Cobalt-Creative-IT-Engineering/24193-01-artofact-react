@@ -79,6 +79,11 @@
 
   --z-nav:          50;
   --z-decorations:  10;
+  /* Stickers de hero : hauteur max = hauteur du hero sous l'offset de nav, moins
+     une marge → un sticker ne peut jamais déborder sur la section suivante.
+     Chaque sticker combine cette borne avec une taille en vw (sans plancher, pour
+     qu'il rétrécisse avec le viewport) et un plafond en rem pour les grands écrans. */
+  --sticker-hero-bound: calc(100% - var(--page-top-offset) - 1.5rem);
   --z-overlay:      100;
 }
 
@@ -396,6 +401,19 @@ a {
   .duos-hero-text { display: none; }
 }
 
+/* Couloir réservé aux stickers de bord droit : le texte de ces sections occupe
+   toute la largeur du container, alors que la moitié visible du sticker (il est
+   décalé de 50 % hors écran) mord dessus entre ~768 et ~1400px. On réserve à
+   droite la moitié visible max du sticker + 1rem, moins la gouttière déjà
+   présente (--content-px). Les valeurs suivent les tailles max des stickers :
+   01 home 38vw/28rem · 01 artistes 30vw/22rem · 02 partenaires (144×364)
+   ≈ 15.8vw/11.9rem de large. Stickers masqués ≤768px → pas de couloir. */
+@media (min-width: 769px) {
+  .home-intro-inner  { padding-right: max(0px, min(19vw, 14rem) + 1rem - var(--content-px)); }
+  .artistes-hero-inner { padding-right: max(0px, min(15vw, 11rem) + 1rem - var(--content-px)); }
+  .partenaires-hero-inner { padding-right: max(0px, min(8vw, 6rem) + 1rem - var(--content-px)); }
+}
+
 /* ─── Footer ───────────────────────────────────────────────────────────── */
 
 .footer {
@@ -569,7 +587,7 @@ a {
 .home-intro                 { padding: var(--home-section-gap) var(--content-px) 0; position: relative; overflow: hidden; }
 .home-intro-sticker         { position: absolute; right: 0; top: 50%;
                               transform: translate(50%, -50%);
-                              width: clamp(15rem, 38vw, 28rem); height: auto;
+                              width: min(38vw, 28rem); height: auto;
                               z-index: var(--z-decorations); pointer-events: none; }
 .home-intro-inner           { display: flex; flex-direction: column; gap: 2rem; max-width: var(--container);
                               margin: 0 auto; position: relative; z-index: 2; }
@@ -586,7 +604,7 @@ a {
 .home-duos > .content-section + .content-section,
 .duos-main > .content-section + .content-section,
 .concept-main > .content-section + .content-section { margin-top: 3rem; }
-.home-duos-sticker          { position: absolute; left: 0; top: 6rem; width: 8rem; height: auto;
+.home-duos-sticker          { position: absolute; left: 0; top: 6rem; width: min(9vw, 8rem); height: auto;
                               z-index: var(--z-decorations); }
 .home-duos-header           { max-width: var(--container); margin: 0 auto;
                               padding: 0 0 2rem var(--content-px); text-align: right; position: relative; }
@@ -1118,13 +1136,16 @@ a {
   padding: var(--page-top-offset) var(--content-px) 5rem;
   position: relative;
 }
+/* Sticker « 03 » (429×583, plus haut que large) : dimensionné en vw seul, sa
+   hauteur dépassait celle du hero et recouvrait le premier duo → borné aussi par
+   --sticker-hero-bound. */
 .duos-hero-sticker {
   position: absolute;
   right: 0;
   top: var(--page-top-offset);
   transform: translate(50%, 0);
-  width: clamp(15rem, 38vw, 28rem);
-  height: auto;
+  height: min(var(--sticker-hero-bound), 52vw, 38rem);
+  width: auto;
   z-index: var(--z-decorations);
   pointer-events: none;
 }
@@ -1154,16 +1175,6 @@ a {
   margin: 0;
 }
 
-/* Entre 768px et 1440px, le sticker « 03 » venait couvrir le titre du premier duo :
-   l'asset fait 429×583 (plus haut que large), donc à 38vw sa HAUTEUR dépasse
-   largement celle du hero, qui elle ne bouge presque plus quand l'écran rétrécit.
-   On le dimensionne donc sur une pente plus faible (18vw) dans cette plage : il
-   reste dans le hero jusqu'à 1440px, où la règle desktop (38vw / max 28rem)
-   reprend la main. En dessous de 768px il est masqué (cf. media query plus haut). */
-@media (max-width: 1439px) {
-  .duos-hero-sticker { width: clamp(8rem, 18vw, 18rem); }
-}
-
 /* Sous ~1024px, la colonne de texte occupe toute la largeur utile et vient buter
    sur la moitié visible du sticker → on la raccourcit pour laisser le couloir libre. */
 @media (max-width: 1024px) {
@@ -1186,19 +1197,19 @@ a {
   transform: translate(50%, 0);
   /* Sticker « 02 » est une forme verticale (144×364) → on le dimensionne par
      la hauteur (pas la largeur, sinon il devient énorme). */
-  height: clamp(16rem, 40vw, 30rem);
+  height: min(var(--sticker-hero-bound), 40vw, 30rem);
   width: auto;
   z-index: var(--z-decorations);
   pointer-events: none;
 }
-/* Sticker artistes « 01 » (carré 262×263) : dimensionné par la largeur. */
+/* Sticker artistes « 01 » (carré 262×263). */
 .artistes-hero-sticker {
   position: absolute;
   right: 0;
   top: var(--page-top-offset);
   transform: translate(50%, 0);
-  width: clamp(12rem, 30vw, 22rem);
-  height: auto;
+  height: min(var(--sticker-hero-bound), 30vw, 22rem);
+  width: auto;
   z-index: var(--z-decorations);
   pointer-events: none;
 }
@@ -1339,8 +1350,8 @@ a {
   right: 0;
   top: var(--page-top-offset);
   transform: translate(50%, 0);
-  width: clamp(15rem, 38vw, 28rem);
-  height: auto;
+  height: min(var(--sticker-hero-bound), 38vw, 28rem);
+  width: auto;
   z-index: var(--z-decorations);
   pointer-events: none;
 }
