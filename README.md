@@ -64,7 +64,8 @@ L'arborescence du projet est organisée comme suit :
 │       └── ci.yml              <- CI GitHub Actions (typecheck, build, artefact dist)
 ├── public/                     <- Assets statiques servis tels quels (favicon, OG images, …)
 │   ├── _redirects              <- Fallback SPA pour Netlify
-│   └── .htaccess               <- Fallback SPA + cache pour un hébergement Apache
+│   ├── .htaccess               <- Fallback SPA, cache, compression, maintenance (Apache)
+│   └── .infomaniak-maintenance.html  <- Page affichée pendant la maintenance
 └── src/
     ├── main.tsx                <- Point d'entrée Vite
     ├── App.tsx                 <- Shell de l'app + table de routage
@@ -197,7 +198,7 @@ Le workflow [.github/workflows/ci.yml](.github/workflows/ci.yml) se déclenche s
 1. `npm ci` sur Node 22 (cache npm activé)
 2. Contrôle de la présence de `VITE_WP_URL` — sans elle, le build tomberait sur l'URL WordPress de démo et produirait un site sans contenu
 3. `npm run build` (typecheck `tsc` puis `vite build`)
-4. Contrôle du fallback SPA dans `dist/` (`_redirects` et `.htaccess`)
+4. Contrôle du contenu de `dist/` (`_redirects`, `.htaccess`, `.infomaniak-maintenance.html`)
 5. Publication de `dist/` en artefact téléchargeable (`dist.zip`, conservé 30 jours)
 
 Les variables `VITE_*` sont **inlinées dans le bundle au moment du build** : elles doivent donc être définies sur le runner, pas sur le serveur de destination. À renseigner dans **Settings → Secrets and variables → Actions → Variables** :
@@ -214,7 +215,23 @@ Le déclenchement manuel accepte un paramètre `wp_url` pour builder ponctuellem
 Le site est statique : il suffit de servir le contenu de `dist/`. Deux cibles sont prévues, et le routeur maison (History API) impose dans les deux cas une règle de réécriture vers `index.html`, sans quoi un rafraîchissement sur une URL profonde (`/duos/mon-duo`) renvoie un 404.
 
 - **Netlify** — build automatique via [netlify.toml](netlify.toml) ; la réécriture vient de `public/_redirects`.
-- **Hébergement Apache** — déployer le contenu de l'artefact `dist.zip` dans le web root ; la réécriture et les en-têtes de cache viennent de `public/.htaccess` (`mod_rewrite` et `mod_headers` doivent être actifs). Attention, `.htaccess` est un fichier caché : vérifiez qu'il survit à votre outil de transfert.
+- **Hébergement Apache / Infomaniak** — déployer le contenu de l'artefact `dist.zip` dans le web root ; la réécriture, le cache, la compression et la bascule de maintenance viennent de [public/.htaccess](public/.htaccess). Le vhost doit avoir `AllowOverride All` et `mod_rewrite` actif, sans quoi Apache ignore le fichier **sans aucun message d'erreur**. Attention aussi : `.htaccess` et `.infomaniak-maintenance.html` sont des fichiers cachés, vérifiez qu'ils survivent à votre outil de transfert.
+
+### Mode maintenance (Apache uniquement)
+
+La bascule est un fichier drapeau à créer à la racine du site, à côté d'`index.html` — ni rebuild, ni redéploiement :
+
+```shell
+touch .maintenance    # tout le site renvoie la page de maintenance en HTTP 503
+rm .maintenance       # retour à la normale
+```
+
+Par FTP ou via le gestionnaire de fichiers, il suffit de créer ou supprimer un fichier vide de ce nom.
+
+- La page servie est [public/.infomaniak-maintenance.html](public/.infomaniak-maintenance.html), autonome (styles en ligne, aucune dépendance au bundle). Son nom commence par un point parce que c'est celui qu'attend Infomaniak dans le web root — ne pas le « corriger » en le renommant.
+- Le drapeau est un fichier **séparé** et non une ligne à décommenter dans `.htaccess` : ce dernier fait partie du zip, donc il est écrasé à chaque déploiement et une bascule inscrite dedans serait silencieusement perdue.
+- La réponse est un **503** et non un 200, pour éviter que les moteurs prennent la page de maintenance pour le contenu du site.
+- Pour continuer à consulter le site pendant la maintenance, décommenter la ligne `RewriteCond %{REMOTE_ADDR}` du `.htaccess` et y mettre son IP publique.
 
 ## Contribuer
 
