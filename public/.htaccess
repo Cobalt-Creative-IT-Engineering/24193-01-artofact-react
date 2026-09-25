@@ -48,9 +48,9 @@ RewriteEngine On
 # compris — ce que robots.txt ne sait pas faire.
 #
 # État au 25.09.2026 : artofact.ch n'est PAS encore rattaché à l'hébergement, qui
-# répond sur admin.artofact.ch (principal) et artofact.cblt.ch (alias). Rien n'est
-# donc indexable pour l'instant — c'est voulu avant l'ouverture publique. La règle
-# s'activera d'elle-même le jour où le domaine définitif répondra.
+# répond uniquement sur artofact.cblt.ch (admin.artofact.ch a été supprimé). Rien
+# n'est donc indexable pour l'instant — c'est voulu avant l'ouverture publique. La
+# règle s'activera d'elle-même le jour où le domaine définitif répondra.
 # ---------------------------------------------------------------------------
 <IfModule mod_headers.c>
   SetEnvIfNoCase Host "^(www\\.)?artofact\\.ch$" CANONICAL_HOST
