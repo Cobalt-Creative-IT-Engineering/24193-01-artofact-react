@@ -62,33 +62,37 @@ function DuoDetailHero({ title, subtitle, text, imageUrl, imageAlt }: DuoDetailH
 }
 
 // ─── Helpers d'extraction (relations Artiste / Partenaire) ───────────────
+// Une relation peut contenir plusieurs entrées (ex. trio : un artiste et deux
+// entreprises) → on renvoie une carte par entrée, jamais seulement la première.
 
-function artisteCardProps(rel: { nodes: ArtisteNode[] } | null | undefined): EntityCardProps | null {
-  const node = rel?.nodes?.[0];
-  const name = node?.title?.trim();
-  if (!name) return null;
-  const f = node?.artistes;
-  return {
-    name,
-    text:     f?.presentation ?? "",
-    photoUrl: f?.logo?.node.sourceUrl ?? null,
-    photoAlt: f?.logo?.node.altText ?? name,
-    linkUrl:  f?.lien ?? null,
-  };
+function artisteCards(rel: { nodes: ArtisteNode[] } | null | undefined): EntityCardProps[] {
+  return (rel?.nodes ?? []).flatMap((node) => {
+    const name = node?.title?.trim();
+    if (!name) return [];
+    const f = node.artistes;
+    return [{
+      name,
+      text:     f?.presentation ?? "",
+      photoUrl: f?.logo?.node.sourceUrl ?? null,
+      photoAlt: f?.logo?.node.altText ?? name,
+      linkUrl:  f?.lien ?? null,
+    }];
+  });
 }
 
-function entrepriseCardProps(rel: { nodes: PartenaireNode[] } | null | undefined): EntityCardProps | null {
-  const node = rel?.nodes?.[0];
-  const name = node?.title?.trim();
-  if (!name) return null;
-  const f = node?.partenaires;
-  return {
-    name,
-    text:     f?.presentation ?? "",
-    photoUrl: f?.logo?.node.sourceUrl ?? null,
-    photoAlt: f?.logo?.node.altText ?? name,
-    linkUrl:  f?.lien ?? null,
-  };
+function entrepriseCards(rel: { nodes: PartenaireNode[] } | null | undefined): EntityCardProps[] {
+  return (rel?.nodes ?? []).flatMap((node) => {
+    const name = node?.title?.trim();
+    if (!name) return [];
+    const f = node.partenaires;
+    return [{
+      name,
+      text:     f?.presentation ?? "",
+      photoUrl: f?.logo?.node.sourceUrl ?? null,
+      photoAlt: f?.logo?.node.altText ?? name,
+      linkUrl:  f?.lien ?? null,
+    }];
+  });
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────
@@ -110,8 +114,7 @@ export function DuoDetailPage({ slug }: { slug: string }) {
   const heroImageUrl  = fields.image?.node.sourceUrl ?? null;
   const heroImageAlt  = fields.image?.node.altText ?? "";
 
-  const artisteProps    = artisteCardProps(fields.artiste);
-  const entrepriseProps = entrepriseCardProps(fields.entreprise);
+  const members = [...artisteCards(fields.artiste), ...entrepriseCards(fields.entreprise)];
 
   const [selected, setSelected] = useState<EntityCardProps | null>(null);
 
@@ -132,24 +135,18 @@ export function DuoDetailPage({ slug }: { slug: string }) {
         imageAlt={heroImageAlt}
       />
 
-      {(artisteProps || entrepriseProps) && (
+      {members.length > 0 && (
         <section className="duo-detail-members" aria-label="Membres du duo">
           <div className="duo-detail-members-inner">
-            <div className="duo-detail-members-grid">
-              {artisteProps && (
+            <div className={`duo-detail-members-grid${members.length >= 3 ? " duo-detail-members-grid--3" : ""}`}>
+              {members.map((m, i) => (
                 <EntityCard
-                  {...artisteProps}
+                  key={`${i}-${m.name}`}
+                  {...m}
                   small
-                  onOpenDetail={artisteProps.text ? () => setSelected(artisteProps) : undefined}
+                  onOpenDetail={m.text ? () => setSelected(m) : undefined}
                 />
-              )}
-              {entrepriseProps && (
-                <EntityCard
-                  {...entrepriseProps}
-                  small
-                  onOpenDetail={entrepriseProps.text ? () => setSelected(entrepriseProps) : undefined}
-                />
-              )}
+              ))}
             </div>
           </div>
         </section>

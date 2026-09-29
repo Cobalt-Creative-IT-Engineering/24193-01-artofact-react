@@ -1441,6 +1441,11 @@ a {
   grid-template-columns: 1fr 1fr;
   gap: 2rem;
 }
+/* Trio (ou plus) : 3 colonnes sur grand écran. Entre 769 et 1023px on garde
+   2 colonnes (la 3e carte passe à la ligne), sinon les cartes sont trop étroites. */
+@media (min-width: 1024px) {
+  .duo-detail-members-grid--3 { grid-template-columns: repeat(3, 1fr); }
+}
 @media (max-width: 768px) {
   .duo-detail-members-grid { grid-template-columns: 1fr; gap: 2rem; }
 }
