@@ -47,28 +47,27 @@ RewriteEngine On
 # L'en-tête couvre tout ce que sert le serveur — sitemap et fichiers statiques
 # compris — ce que robots.txt ne sait pas faire.
 #
-# État au 25.09.2026 : artofact.ch n'est PAS encore rattaché à l'hébergement, qui
-# répond uniquement sur artofact.cblt.ch (admin.artofact.ch a été supprimé). Rien
-# n'est donc indexable pour l'instant — c'est voulu avant l'ouverture publique. La
-# règle s'activera d'elle-même le jour où le domaine définitif répondra.
+# Domaine actuel : artofact.cblt.ch. Le jour où artofact.ch est rattaché à
+# l'hébergement, remplacez-le ici ET dans public/sitemap.xml + public/robots.txt,
+# qui portent des URL absolues.
 # ---------------------------------------------------------------------------
 <IfModule mod_headers.c>
-  SetEnvIfNoCase Host "^(www\\.)?artofact\\.ch$" CANONICAL_HOST
+  SetEnvIfNoCase Host "^(www\\.)?artofact\\.cblt\\.ch$" CANONICAL_HOST
   Header always set X-Robots-Tag "noindex, nofollow" env=!CANONICAL_HOST
 </IfModule>
 
 # ---------------------------------------------------------------------------
 # À ACTIVER APRÈS LA BASCULE DNS — redirection vers le domaine canonique
 #
-# Une fois artofact.ch en service avec son certificat, décommentez : les
+# Une fois le domaine canonique en service avec son certificat, décommentez : les
 # autres noms redirigent alors vers lui au lieu de servir un site concurrent.
 #
 # N'activez pas ces lignes AVANT que DNS et certificat soient en place : elles
 # renverraient les visiteurs vers une adresse qui ne répond pas encore.
 # ---------------------------------------------------------------------------
 # <IfModule mod_rewrite.c>
-#   RewriteCond %{HTTP_HOST} !^artofact\.ch$ [NC]
-#   RewriteRule ^ https://artofact.ch%{REQUEST_URI} [R=301,L]
+#   RewriteCond %{HTTP_HOST} !^artofact\.cblt\.ch$ [NC]
+#   RewriteRule ^ https://artofact.cblt.ch%{REQUEST_URI} [R=301,L]
 # </IfModule>
 
 #

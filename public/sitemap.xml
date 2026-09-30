@@ -19,27 +19,27 @@
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://artofact.ch/</loc>
+    <loc>https://artofact.cblt.ch/</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://artofact.ch/concept</loc>
+    <loc>https://artofact.cblt.ch/concept</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://artofact.ch/duos</loc>
+    <loc>https://artofact.cblt.ch/duos</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://artofact.ch/artistes</loc>
+    <loc>https://artofact.cblt.ch/artistes</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://artofact.ch/partenaires</loc>
+    <loc>https://artofact.cblt.ch/partenaires</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>0.5</priority>
   </url>

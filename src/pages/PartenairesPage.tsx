@@ -118,6 +118,7 @@ export function PartenairesPage() {
                   name={item.title}
                   text={f?.presentation ?? undefined}
                   photoUrl={f?.logo?.node.sourceUrl ?? null}
+                  photoSrcSet={f?.logo?.node.srcSet ?? null}
                   photoAlt={f?.logo?.node.altText ?? item.title}
                   linkUrl={f?.lien ?? undefined}
                   small

@@ -13,6 +13,7 @@ export type EntityCardProps = {
   name: string;
   text?: string;              // HTML WYSIWYG (présentation / description)
   photoUrl: string | null;
+  photoSrcSet?: string | null;
   photoAlt?: string;
   linkUrl?: string | null;
   small?: boolean;
@@ -24,12 +25,19 @@ export type EntityCardProps = {
   onOpenDetail?: () => void;
 };
 
-export function EntityCard({ name, text, photoUrl, photoAlt, linkUrl, small, onOpenDetail }: EntityCardProps) {
+export function EntityCard({ name, text, photoUrl, photoSrcSet, photoAlt, linkUrl, small, onOpenDetail }: EntityCardProps) {
   return (
     <article className={`duo-member-card${small ? " duo-member-card--small" : ""}`}>
       <h3 className="duo-member-card-name">{name}</h3>
       <div className="duo-member-card-photo">
-        <img src={photoUrl ?? bannerImg} alt={photoAlt ?? name} />
+        <img
+          src={photoUrl ?? bannerImg}
+          srcSet={photoUrl ? photoSrcSet ?? undefined : undefined}
+          sizes="(max-width: 767px) 100vw, 600px"
+          alt={photoAlt ?? name}
+          loading="lazy"
+          decoding="async"
+        />
       </div>
       {onOpenDetail
         ? text && <p className="duo-member-card-excerpt">{htmlToText(text)}</p>

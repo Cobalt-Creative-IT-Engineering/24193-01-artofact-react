@@ -38,10 +38,11 @@ type DuoDetailHeroProps = {
   subtitle: string;
   text:     string;
   imageUrl: string | null;
+  imageSrcSet: string | null;
   imageAlt: string;
 };
 
-function DuoDetailHero({ title, subtitle, text, imageUrl, imageAlt }: DuoDetailHeroProps) {
+function DuoDetailHero({ title, subtitle, text, imageUrl, imageSrcSet, imageAlt }: DuoDetailHeroProps) {
   return (
     <section className="duo-detail-hero" aria-label={title}>
       <Sticker name="04" className="duo-detail-hero-sticker" />
@@ -53,7 +54,14 @@ function DuoDetailHero({ title, subtitle, text, imageUrl, imageAlt }: DuoDetailH
             {text && <RichText html={text} className="duo-detail-hero-text" />}
           </div>
           <div className="duo-detail-hero-image">
-            <img src={imageUrl ?? bannerImg} alt={imageAlt || title} />
+            {/* Image principale de la page (LCP) : pas de lazy. */}
+            <img
+              src={imageUrl ?? bannerImg}
+              srcSet={imageUrl ? imageSrcSet ?? undefined : undefined}
+              sizes="(max-width: 900px) 100vw, 600px"
+              alt={imageAlt || title}
+              decoding="async"
+            />
           </div>
         </div>
       </div>
@@ -73,8 +81,9 @@ function artisteCards(rel: { nodes: ArtisteNode[] } | null | undefined): EntityC
     return [{
       name,
       text:     f?.presentation ?? "",
-      photoUrl: f?.logo?.node.sourceUrl ?? null,
-      photoAlt: f?.logo?.node.altText ?? name,
+      photoUrl:    f?.logo?.node.sourceUrl ?? null,
+      photoSrcSet: f?.logo?.node.srcSet ?? null,
+      photoAlt:    f?.logo?.node.altText ?? name,
       linkUrl:  f?.lien ?? null,
     }];
   });
@@ -88,8 +97,9 @@ function entrepriseCards(rel: { nodes: PartenaireNode[] } | null | undefined): E
     return [{
       name,
       text:     f?.presentation ?? "",
-      photoUrl: f?.logo?.node.sourceUrl ?? null,
-      photoAlt: f?.logo?.node.altText ?? name,
+      photoUrl:    f?.logo?.node.sourceUrl ?? null,
+      photoSrcSet: f?.logo?.node.srcSet ?? null,
+      photoAlt:    f?.logo?.node.altText ?? name,
       linkUrl:  f?.lien ?? null,
     }];
   });
@@ -112,6 +122,7 @@ export function DuoDetailPage({ slug }: { slug: string }) {
   const heroSubtitle  = fields.sousTitre ?? "";
   const heroText      = fields.texte ?? "";
   const heroImageUrl  = fields.image?.node.sourceUrl ?? null;
+  const heroImageSrcSet = fields.image?.node.srcSet ?? null;
   const heroImageAlt  = fields.image?.node.altText ?? "";
 
   const members = [...artisteCards(fields.artiste), ...entrepriseCards(fields.entreprise)];
@@ -132,6 +143,7 @@ export function DuoDetailPage({ slug }: { slug: string }) {
         subtitle={heroSubtitle}
         text={heroText}
         imageUrl={heroImageUrl}
+        imageSrcSet={heroImageSrcSet}
         imageAlt={heroImageAlt}
       />
 

@@ -2,14 +2,11 @@
 
 import { SITE_CONFIG } from "../config/site";
 
-let _siteName: string = SITE_CONFIG.name;
-let _siteDesc: string = SITE_CONFIG.description;
-
-/** À appeler une fois au chargement depuis App.tsx avec les infos WP. */
-export function initMeta(name: string, description: string) {
-  _siteName = name || _siteName;
-  _siteDesc = description || _siteDesc;
-}
+// Nom et description viennent de SITE_CONFIG. Ils étaient auparavant lus sur
+// /wp-json/ au boot : ~280 Ko et ~0,8 s de PHP à chaque chargement, en
+// concurrence avec les requêtes de contenu, pour les deux mêmes chaînes.
+const _siteName: string = SITE_CONFIG.name;
+const _siteDesc: string = SITE_CONFIG.description;
 
 export interface PageMeta {
   /** Label de la page (sans le nom du site). Ex : "À propos" */

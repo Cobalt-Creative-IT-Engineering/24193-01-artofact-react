@@ -121,6 +121,7 @@ export function HomePage() {
               title={duo.title}
               text={fields.texte ?? ""}
               imageUrl={fields.image?.node.sourceUrl ?? null}
+              imageSrcSet={fields.image?.node.srcSet ?? null}
               imageAlt={fields.image?.node.altText ?? ""}
               ctaLabel="Découvrir le duo"
               ctaUrl={`/duos/${duo.slug}`}

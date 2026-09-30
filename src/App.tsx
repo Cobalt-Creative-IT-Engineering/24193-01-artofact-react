@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useLayoutEffect } from "react";
 import { useRoute, navigate } from "./hooks/useRoute";
 import { Nav, Footer } from "./components/layout";
 import { HomePage }            from "./pages/HomePage";
@@ -12,7 +12,7 @@ import { NotFoundPage }        from "./pages/NotFoundPage";
 import { ACTIVE_THEME, FORCE_COMING_SOON, COMING_SOON_UNTIL } from "./config/site";
 import { THEMES }              from "./themes/index";
 import { Decorations }         from "./themes/Decorations";
-import { initMeta, setPageMeta } from "./lib/meta";
+import { setPageMeta } from "./lib/meta";
 
 // ─── Application du thème ─────────────────────────────────────────────────────
 const _theme = THEMES[ACTIVE_THEME];
@@ -63,16 +63,12 @@ function shouldShowComingSoon(): boolean {
 export default function App() {
   const { route, anchor } = useRoute();
 
-  // Infos du site WordPress (une seule fois) → initialise le module meta.
-  useEffect(() => {
-    fetch("/wp-json/")
-      .then((r) => r.json())
-      .then((d) => { initMeta(d?.name ?? "", d?.description ?? ""); })
-      .catch(() => {});
-  }, []);
-
   // Meta par défaut selon la route (les pages de détail écrasent avec leurs propres infos).
-  useEffect(() => {
+  // useLayoutEffect : les effets des enfants passent avant ceux du parent. Quand
+  // une page de détail a ses données en cache dès le premier rendu, un useEffect
+  // ici écraserait son titre (« Les duos » au lieu du nom du duo). Les layout
+  // effects passent tous avant les effets normaux.
+  useLayoutEffect(() => {
     // L'hébergement statique répond 200 à toute URL inconnue : c'est le routeur
     // client qui tranche. Sans ce noindex, un lien périmé ou une faute de frappe
     // s'indexerait comme une page valide.

@@ -51,10 +51,11 @@ function linkProps(lien: AcfLink | null | undefined): { href: string; label: str
   return { href: lien.url, label: lien.title || "Découvrir" };
 }
 
-function imageProps(image: PageSection["image"]): { url: string | null; alt: string } {
+function imageProps(image: PageSection["image"]): { url: string | null; srcSet: string | null; alt: string } {
   return {
-    url: image?.node.sourceUrl ?? null,
-    alt: image?.node.altText ?? "",
+    url:    image?.node.sourceUrl ?? null,
+    srcSet: image?.node.srcSet ?? null,
+    alt:    image?.node.altText ?? "",
   };
 }
 
@@ -126,13 +127,14 @@ function ConceptListSection({
   variant: "dark" | "light" | "accent";
   reversed: boolean;
 }) {
-  const img = "image" in item ? imageProps(item.image) : { url: null, alt: "" };
+  const img = "image" in item ? imageProps(item.image) : { url: null, srcSet: null, alt: "" };
   const cta = linkProps(item.lien);
   return (
     <ContentSection
       title={item.titre ?? ""}
       text={item.texte ?? ""}
       imageUrl={img.url}
+      imageSrcSet={img.srcSet}
       imageAlt={img.alt}
       reversed={reversed}
       variant={variant}

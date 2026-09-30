@@ -28,6 +28,7 @@ export type AcfLink = {
 export type AcfImage = {
   node: {
     sourceUrl: string;
+    srcSet?:   string | null;
     altText?:  string | null;
   };
 };
@@ -35,6 +36,7 @@ export type AcfImage = {
 export type AcfMediaEdge = {
   node: {
     sourceUrl: string;
+    srcSet?:   string | null;
     altText?:  string | null;
   };
 };

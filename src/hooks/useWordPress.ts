@@ -32,6 +32,10 @@ const DEFAULT_STALE_MS = 60_000;
 const SESSION_STALE_MS = 30 * 60_000; // 30 min pour sessionStorage
 const SESSION_PREFIX   = "wp:";
 
+// Requêtes en cours par clé : deux composants montés en même temps avec la même
+// clé (ex. HomePage + NavOverlay sur la liste des duos) partagent un seul appel.
+const inflight = new Map<string, Promise<unknown>>();
+
 // ─── Sérialisation sessionStorage (gère les Maps) ─────────────────────────
 
 function sessionWrite(key: string, data: unknown): void {
@@ -46,17 +50,21 @@ function sessionWrite(key: string, data: unknown): void {
   } catch { /* quota exceeded ou private mode : on ignore */ }
 }
 
-function sessionRead<T>(key: string, staleMs = SESSION_STALE_MS): T | null {
+function sessionReadEntry<T>(key: string, staleMs = SESSION_STALE_MS): { data: T; updatedAt: number } | null {
   try {
     const raw = sessionStorage.getItem(SESSION_PREFIX + key);
     if (!raw) return null;
     const { v, t } = JSON.parse(raw) as { v: unknown; t: number };
     if (Date.now() - t > staleMs) return null;
     if (v && typeof v === "object" && (v as Record<string, unknown>).__map === true) {
-      return new Map((v as { entries: [unknown, unknown][] }).entries) as unknown as T;
+      return { data: new Map((v as { entries: [unknown, unknown][] }).entries) as unknown as T, updatedAt: t };
     }
-    return v as T;
+    return { data: v as T, updatedAt: t };
   } catch { return null; }
+}
+
+function sessionRead<T>(key: string, staleMs = SESSION_STALE_MS): T | null {
+  return sessionReadEntry<T>(key, staleMs)?.data ?? null;
 }
 
 // ─── Hook interne useFetch ────────────────────────────────────────────────
@@ -94,7 +102,18 @@ function useFetch<T>(
     async (force = false) => {
       const now = Date.now();
       if (!force && cacheKey) {
-        const cached = memoryCache.get(cacheKey);
+        let cached = memoryCache.get(cacheKey);
+        // Après un rechargement, la Map est vide : on reprend l'entrée
+        // sessionStorage si elle est encore fraîche au sens de `staleMs`,
+        // sinon elle ne servait qu'à l'affichage initial et la requête partait
+        // quand même.
+        if (!cached && persist) {
+          const entry = sessionReadEntry<T>(cacheKey, persistStaleMs);
+          if (entry) {
+            cached = entry;
+            memoryCache.set(cacheKey, entry);
+          }
+        }
         if (cached && now - cached.updatedAt < staleMs) {
           setState({ status: "success", data: cached.data as T, error: null, isFetching: false });
           return;
@@ -109,7 +128,19 @@ function useFetch<T>(
       }));
 
       try {
-        const data = await fetcherRef.current();
+        let data: T;
+        if (cacheKey) {
+          let pending = inflight.get(cacheKey) as Promise<T> | undefined;
+          if (!pending) {
+            pending = fetcherRef.current();
+            inflight.set(cacheKey, pending);
+            const clear = () => { if (inflight.get(cacheKey) === pending) inflight.delete(cacheKey); };
+            pending.then(clear, clear);
+          }
+          data = await pending;
+        } else {
+          data = await fetcherRef.current();
+        }
         if (cacheKey) {
           memoryCache.set(cacheKey, { data, updatedAt: Date.now() });
           if (persist) sessionWrite(cacheKey, data);
@@ -124,7 +155,7 @@ function useFetch<T>(
         }));
       }
     },
-    [cacheKey, staleMs, persist]
+    [cacheKey, staleMs, persist, persistStaleMs]
   );
 
   useEffect(() => {
@@ -287,7 +318,9 @@ export async function prefetchCPTItems(
 // ─── GraphQL — fragments partagés ────────────────────────────────────────
 
 const GQL_LINK_FRAGMENT = `url title target`;
-const GQL_IMAGE_EDGE = `node { sourceUrl altText }`;
+// srcSet : toutes les tailles générées par WordPress, pour que le navigateur
+// choisisse selon `sizes` au lieu de charger l'original (jusqu'à >1 Mo).
+const GQL_IMAGE_EDGE = `node { sourceUrl srcSet altText }`;
 
 // ─── GraphQL — Duos (CPT + ACF) ──────────────────────────────────────────
 

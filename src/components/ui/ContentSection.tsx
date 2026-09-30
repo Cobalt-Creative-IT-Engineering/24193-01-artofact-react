@@ -15,6 +15,7 @@ type ContentSectionProps = {
   ctaLabel?: string;
   ctaUrl?: string;
   imageUrl: string | null;
+  imageSrcSet?: string | null;
   imageAlt?: string;
   reversed: boolean;
   variant: ContentVariant;
@@ -27,6 +28,7 @@ export function ContentSection({
   ctaLabel,
   ctaUrl,
   imageUrl,
+  imageSrcSet,
   imageAlt,
   reversed,
   variant,
@@ -45,7 +47,14 @@ export function ContentSection({
       className={`content-section content-section--${variant} ${directionClass}`}
     >
       <div className="content-section-image">
-        <img src={imageUrl ?? bannerImg} alt={imageAlt ?? ""} />
+        <img
+          src={imageUrl ?? bannerImg}
+          srcSet={imageUrl ? imageSrcSet ?? undefined : undefined}
+          sizes="(max-width: 767px) 100vw, 50vw"
+          alt={imageAlt ?? ""}
+          loading="lazy"
+          decoding="async"
+        />
       </div>
 
       <div className={`content-section-content ${contentAlignClass}`}>

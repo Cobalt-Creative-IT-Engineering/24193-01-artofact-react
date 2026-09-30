@@ -4,7 +4,7 @@ import { CTAButton } from "../components/ui";
 
 export function NotFoundPage() {
   useEffect(() => {
-    setPageMeta({ title: "Page non trouvée" });
+    setPageMeta({ title: "Page non trouvée", noindex: true });
   }, []);
 
   return (

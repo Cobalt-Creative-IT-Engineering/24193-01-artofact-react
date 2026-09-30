@@ -6,4 +6,4 @@ Disallow: /wp-admin/
 Allow: /wp-admin/admin-ajax.php
 
 # Décrit les routes du front React, pas les permaliens WordPress.
-Sitemap: https://artofact.ch/sitemap.xml
+Sitemap: https://artofact.cblt.ch/sitemap.xml
