@@ -4,6 +4,7 @@ import type { PartenaireNode } from "../config/acf-schemas";
 import { Sticker, EntityCard, EntityDetailModal, RichText } from "../components/ui";
 import mobiliereLogo from "../assets/images/partners/mobiliere.svg";
 import fpeLogo from "../assets/images/partners/fpe.svg";
+import etatFrLogo from "../assets/images/partners/etat-fr.webp";
 
 // ─── Contenu statique de l'en-tête (pas d'ACF « page partenaires » côté WP) ─
 
@@ -29,7 +30,7 @@ const FAKE_PARTENAIRES: PartenaireNode[] = [
     partenaires: {
       logo: { node: { sourceUrl: mobiliereLogo, altText: "la Mobilière" } },
       lien: "https://www.mobiliere.ch",
-      categorieDuPartenaire: "Presenting partners",
+      categorieDuPartenaire: "Partenaire",
     },
   },
   {
@@ -38,7 +39,16 @@ const FAKE_PARTENAIRES: PartenaireNode[] = [
     partenaires: {
       logo: { node: { sourceUrl: fpeLogo, altText: "FPE — Fédération Patronale et Économique" } },
       lien: "https://www.fpe-cifa.ch",
-      categorieDuPartenaire: "Presenting partners",
+      categorieDuPartenaire: "Partenaire",
+    },
+  },
+  {
+    slug:  "etat-de-fribourg",
+    title: "État de Fribourg",
+    partenaires: {
+      logo: { node: { sourceUrl: etatFrLogo, altText: "État de Fribourg" } },
+      lien: "https://www.fr.ch",
+      categorieDuPartenaire: "Partenaire",
     },
   },
 ];
@@ -58,27 +68,50 @@ function PartenairesHero() {
   );
 }
 
-// ─── Regroupement par catégorie (ordre de première apparition) ───────────
+// ─── Regroupement par catégorie (ordre imposé) ───────────────────────────
 
-const DEFAULT_CATEGORY = "Partenaires";
+// Sections affichées de haut en bas. `key` = valeur du champ ACF
+// « catégorie du partenaire » une fois normalisée (cf. normalizeCategory) ;
+// `title` = titre affiché. Une catégorie inconnue est ajoutée à la fin, sous
+// son libellé brut, pour ne jamais faire disparaître un partenaire.
+const CATEGORY_ORDER: { key: string; title: string }[] = [
+  { key: "partenaire",       title: "Presenting partner" },
+  { key: "autre partenaire", title: "Autres partenaires" },
+  { key: "media",            title: "Médias" },
+  { key: "entreprise",       title: "Entreprises" },
+];
+
+// Catégorie vide → première section (partenaires principaux).
+const DEFAULT_CATEGORY_KEY = CATEGORY_ORDER[0].key;
+
+/** Tolère casse, accents, espaces et pluriels : « Médias » ≡ « media ». */
+function normalizeCategory(value: string): string {
+  return value
+    .normalize("NFD").replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .map((word) => word.replace(/s$/, ""))
+    .join(" ");
+}
 
 type PartenaireGroup = { category: string; items: PartenaireNode[] };
 
 function groupByCategory(partenaires: PartenaireNode[]): PartenaireGroup[] {
-  const groups: PartenaireGroup[] = [];
-  const index = new Map<string, PartenaireGroup>();
+  const known = new Map(CATEGORY_ORDER.map(({ key, title }) => [key, { category: title, items: [] as PartenaireNode[] }]));
+  const unknown = new Map<string, PartenaireGroup>();
 
   for (const p of partenaires) {
-    const category = p.partenaires?.categorieDuPartenaire?.trim() || DEFAULT_CATEGORY;
-    let group = index.get(category);
+    const raw = p.partenaires?.categorieDuPartenaire?.trim() ?? "";
+    const key = raw ? normalizeCategory(raw) : DEFAULT_CATEGORY_KEY;
+    let group = known.get(key) ?? unknown.get(key);
     if (!group) {
-      group = { category, items: [] };
-      index.set(category, group);
-      groups.push(group);
+      group = { category: raw, items: [] };
+      unknown.set(key, group);
     }
     group.items.push(p);
   }
-  return groups;
+  return [...known.values(), ...unknown.values()].filter((g) => g.items.length > 0);
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────

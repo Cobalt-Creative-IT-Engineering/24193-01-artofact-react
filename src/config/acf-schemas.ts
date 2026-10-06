@@ -105,7 +105,7 @@ export type PartenaireFields = {
   logo?:                  AcfMediaEdge | null;
   lien?:                  string | null;
   presentation?:          string | null; // HTML WYSIWYG
-  categorieDuPartenaire?: string | null;  // champ texte ACF (ex. "Partenaires")
+  categorieDuPartenaire?: string | null;  // Partenaire | Autres partenaires | Media | Entreprise — ordre et titres : CATEGORY_ORDER (PartenairesPage)
 };
 
 export type PartenaireNode = {

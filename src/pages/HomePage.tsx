@@ -1,7 +1,7 @@
 import { useHomeContent, useDuosList } from "../hooks/useWordPress";
 import type { DuoNode, AcfLink } from "../config/acf-schemas";
 import { CTAButton, ContentSection, Sticker, RichText } from "../components/ui";
-import bannerImg from "../assets/images/banner.webp";
+import heroImg from "../assets/images/banner_2.webp";
 import { formatDuoTitle } from "../lib/utils";
 
 // ─── Textes d'exemple (affichés tant que le champ ACF correspondant est vide) ───
@@ -40,7 +40,7 @@ const HOME_DUOS_INITIAL = 2;
 function HeroSection() {
   return (
     <section className="home-hero" aria-label="Image d'introduction">
-      <img src={bannerImg} alt="" className="home-hero-image" />
+      <img src={heroImg} alt="" className="home-hero-image" />
     </section>
   );
 }

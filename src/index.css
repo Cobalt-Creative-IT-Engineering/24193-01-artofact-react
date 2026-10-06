@@ -515,6 +515,12 @@ a {
 @media (max-width: 768px) {
   .footer-partners-row { justify-content: center; }
 }
+/* Logo État de Fribourg : quasi carré (les autres logos partenaires sont des
+   bandeaux larges et bas). Sans hauteur fixe, il s'afficherait jusqu'à 10rem de
+   haut (max-height des rangées de logos) → on l'aligne visuellement sur eux. */
+.footer-partners-row > .partner-logo--etat-fr,
+.nav-overlay-footer-partners-row > .partner-logo--etat-fr { height: 3.5rem; width: auto; }
+
 .footer-partner-logo {
   max-height: 2rem;
   width: auto;
@@ -563,9 +569,12 @@ a {
   background: var(--color-bg-dark);
 }
 
+/* Hero = exactement un écran. 100svh (« petit » viewport) évite que la barre
+   d'adresse mobile ne rogne le bas de l'image ; 100vh sert de repli. */
 .home-hero {
   position: relative;
-  min-height: 90vh;
+  height: 100vh;
+  height: 100svh;
   display: flex;
   align-items: flex-end;
   overflow: hidden;

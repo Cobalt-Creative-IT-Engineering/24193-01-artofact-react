@@ -2,6 +2,7 @@ import { SOCIAL_LINKS } from "../../config/site";
 import logoDark from "../../assets/logo/artofact-dark.svg";
 import mobiliereLogo from "../../assets/images/partners/mobiliere.svg";
 import fpeLogo from "../../assets/images/partners/fpe.svg";
+import etatFrLogo from "../../assets/images/partners/etat-fr.webp";
 import iconInstagram from "../../assets/icon/icon_instagram.svg";
 import iconLinkedin from "../../assets/icon/icon_linkedin.svg";
 import iconYoutube from "../../assets/icon/icon_youtube.svg";
@@ -63,6 +64,7 @@ export function Footer() {
           <div className="footer-partners-row">
             <img src={mobiliereLogo} alt="la Mobilière" className="footer-partner-logo" />
             <img src={fpeLogo} alt="FPE — Fédération Patronale et Économique" className="footer-partner-logo" />
+            <img src={etatFrLogo} alt="État de Fribourg" className="footer-partner-logo partner-logo--etat-fr" />
           </div>
         </div>
 
