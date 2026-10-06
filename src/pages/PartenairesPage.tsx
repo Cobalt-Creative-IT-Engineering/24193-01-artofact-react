@@ -4,7 +4,7 @@ import type { PartenaireNode } from "../config/acf-schemas";
 import { Sticker, EntityCard, EntityDetailModal, RichText } from "../components/ui";
 import mobiliereLogo from "../assets/images/partners/mobiliere.svg";
 import fpeLogo from "../assets/images/partners/fpe.svg";
-import etatFrLogo from "../assets/images/partners/etat-fr.webp";
+import etatFrLogo from "../assets/images/partners/etat-fr.svg";
 
 // ─── Contenu statique de l'en-tête (pas d'ACF « page partenaires » côté WP) ─
 
@@ -111,7 +111,16 @@ function groupByCategory(partenaires: PartenaireNode[]): PartenaireGroup[] {
     }
     group.items.push(p);
   }
-  return [...known.values(), ...unknown.values()].filter((g) => g.items.length > 0);
+  const groups = [...known.values(), ...unknown.values()].filter((g) => g.items.length > 0);
+  for (const g of groups) g.items.sort(byOrdre);
+  return groups;
+}
+
+/** Champ ACF « ordre » croissant ; sans numéro → après, dans l'ordre WP (tri stable). */
+function byOrdre(a: PartenaireNode, b: PartenaireNode): number {
+  const oa = a.partenaires?.ordre ?? Infinity;
+  const ob = b.partenaires?.ordre ?? Infinity;
+  return oa === ob ? 0 : oa < ob ? -1 : 1;
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────

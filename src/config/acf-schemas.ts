@@ -106,6 +106,7 @@ export type PartenaireFields = {
   lien?:                  string | null;
   presentation?:          string | null; // HTML WYSIWYG
   categorieDuPartenaire?: string | null;  // Partenaire | Autres partenaires | Media | Entreprise — ordre et titres : CATEGORY_ORDER (PartenairesPage)
+  ordre?:                 number | null;  // ordre d'affichage dans sa catégorie (croissant, vide = à la fin)
 };
 
 export type PartenaireNode = {

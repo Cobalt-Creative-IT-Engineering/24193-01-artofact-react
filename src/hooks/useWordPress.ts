@@ -408,6 +408,7 @@ const GQL_PARTENAIRE_FIELDS_FRAGMENT = `
     lien
     presentation
     categorieDuPartenaire
+    ordre
   }
 `;
 

@@ -5,7 +5,7 @@ import { useDuosList } from "../../hooks/useWordPress";
 import logoDark from "../../assets/logo/artofact-dark.svg";
 import mobiliereLogo from "../../assets/images/partners/mobiliere.svg";
 import fpeLogo from "../../assets/images/partners/fpe.svg";
-import etatFrLogo from "../../assets/images/partners/etat-fr.webp";
+import etatFrLogo from "../../assets/images/partners/etat-fr.svg";
 import iconBurgerClose from "../../assets/icon/icon_burger_close.svg";
 import iconInstagram from "../../assets/icon/icon_instagram.svg";
 import iconLinkedin from "../../assets/icon/icon_linkedin.svg";
@@ -131,9 +131,9 @@ export function NavOverlay({ onClose }: Props) {
           <div className="nav-overlay-footer-partners">
             <p className="nav-overlay-footer-title">Presenting partners:</p>
             <div className="nav-overlay-footer-partners-row">
-              <img src={mobiliereLogo} alt="la Mobilière" />
               <img src={fpeLogo} alt="FPE — Fédération Patronale et Économique" />
-              <img src={etatFrLogo} alt="État de Fribourg" className="partner-logo--etat-fr" />
+              <img src={mobiliereLogo} alt="la Mobilière" />
+              <img src={etatFrLogo} alt="État de Fribourg" />
             </div>
           </div>
         </div>

@@ -388,7 +388,7 @@ a {
 .nav-overlay-footer-partners-row {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.5rem 3rem; /* lignes / colonnes : de l'air entre les logos */
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -505,7 +505,7 @@ a {
 .footer-partners-row {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.5rem 3rem; /* lignes / colonnes : de l'air entre les logos */
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -515,11 +515,12 @@ a {
 @media (max-width: 768px) {
   .footer-partners-row { justify-content: center; }
 }
-/* Logo État de Fribourg : quasi carré (les autres logos partenaires sont des
-   bandeaux larges et bas). Sans hauteur fixe, il s'afficherait jusqu'à 10rem de
-   haut (max-height des rangées de logos) → on l'aligne visuellement sur eux. */
-.footer-partners-row > .partner-logo--etat-fr,
-.nav-overlay-footer-partners-row > .partner-logo--etat-fr { height: 3.5rem; width: auto; }
+/* Logos « presenting partners » (footer + menu) : même largeur pour tous, la
+   hauteur suit les proportions de chaque logo. Les SVG sont recadrés sur leur
+   contenu (sans marge ni plan de travail) : un nouveau logo exporté avec une
+   page entière autour s'afficherait minuscule. */
+.footer-partners-row > img,
+.nav-overlay-footer-partners-row > img { width: 12rem; height: auto; max-height: none; }
 
 .footer-partner-logo {
   max-height: 2rem;
@@ -995,9 +996,13 @@ a {
 
 /* ─── Concept page ─────────────────────────────────────────────────────── */
 
+/* Espace avant le footer porté par la page (comme /duos, /partenaires) et non
+   par la carte accent : celle-ci est masquée quand son champ ACF est vide, et
+   la dernière section collait alors au footer. */
 .concept-main {
   background: var(--color-bg-dark);
   flex: 1;
+  padding-bottom: 6rem;
 }
 
 .concept-hero {
@@ -1118,7 +1123,7 @@ a {
   align-items: start;
   width: calc(100% - 2 * var(--content-px));
   max-width: var(--container);
-  margin: 6rem auto 6rem;
+  margin: 6rem auto 0;
 }
 @media (max-width: 768px) {
   .concept-card {
