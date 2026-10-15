@@ -47,13 +47,17 @@ RewriteEngine On
 # L'en-tête couvre tout ce que sert le serveur — sitemap et fichiers statiques
 # compris — ce que robots.txt ne sait pas faire.
 #
-# Domaine actuel : artofact.cblt.ch. Le jour où artofact.ch est rattaché à
-# l'hébergement, remplacez-le ici ET dans public/sitemap.xml + public/robots.txt,
-# qui portent des URL absolues.
+# Domaine canonique : artofact.ch (www accepté). artofact.cblt.ch et tout autre
+# alias reçoivent noindex. En cas de changement, le reprendre ici ET dans
+# public/sitemap.xml + public/robots.txt, qui portent des URL absolues.
+#
+# Écrit avec <If> + « Header set » (et non SetEnvIf + « Header always set …
+# env=! ») : c'est la variante validée en production chez Infomaniak.
 # ---------------------------------------------------------------------------
 <IfModule mod_headers.c>
-  SetEnvIfNoCase Host "^(www\\.)?artofact\\.cblt\\.ch$" CANONICAL_HOST
-  Header always set X-Robots-Tag "noindex, nofollow" env=!CANONICAL_HOST
+  <If "%{HTTP_HOST} !~ /^(www\.)?artofact\.ch$/i">
+    Header set X-Robots-Tag "noindex, nofollow"
+  </If>
 </IfModule>
 
 # ---------------------------------------------------------------------------
@@ -66,8 +70,8 @@ RewriteEngine On
 # renverraient les visiteurs vers une adresse qui ne répond pas encore.
 # ---------------------------------------------------------------------------
 # <IfModule mod_rewrite.c>
-#   RewriteCond %{HTTP_HOST} !^artofact\.cblt\.ch$ [NC]
-#   RewriteRule ^ https://artofact.cblt.ch%{REQUEST_URI} [R=301,L]
+#   RewriteCond %{HTTP_HOST} !^artofact\.ch$ [NC]
+#   RewriteRule ^ https://artofact.ch%{REQUEST_URI} [R=301,L]
 # </IfModule>
 
 #
@@ -222,6 +226,13 @@ ErrorDocument 503 /.infomaniak-maintenance.html
   <FilesMatch "^(favicon\.svg|robots\.txt)$">
     Header set Cache-Control "public, max-age=3600"
   </FilesMatch>
+
+  # Sitemap : type explicite avec charset. Le serveur l'envoie déjà en
+  # application/xml ; ceci ne fait que le figer, quel que soit le réglage
+  # de l'hébergeur.
+  <Files "sitemap.xml">
+    Header set Content-Type "application/xml; charset=utf-8"
+  </Files>
 
   # index.html ne doit jamais être mis en cache : il référence les assets hashés.
   # Un index.html périmé pointe vers des fichiers supprimés au déploiement suivant,

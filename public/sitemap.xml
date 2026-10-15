@@ -14,32 +14,32 @@
   Les détails de duos (/duos/:slug) ne sont pas listés : un fichier statique ne
   peut pas suivre les publications. Ils restent découvrables depuis /duos.
 
-  Le domaine est repris de la configuration CORS du README — à confirmer avant
-  la mise en ligne.
+  Domaine canonique : https://artofact.ch (le même que dans public/robots.txt
+  et dans le bloc « Un seul domaine indexable » de public/.htaccess).
 -->
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://artofact.cblt.ch/</loc>
+    <loc>https://artofact.ch/</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://artofact.cblt.ch/concept</loc>
+    <loc>https://artofact.ch/concept</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://artofact.cblt.ch/duos</loc>
+    <loc>https://artofact.ch/duos</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://artofact.cblt.ch/artistes</loc>
+    <loc>https://artofact.ch/artistes</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://artofact.cblt.ch/partenaires</loc>
+    <loc>https://artofact.ch/partenaires</loc>
     <lastmod>2026-09-25</lastmod>
     <priority>0.5</priority>
   </url>
